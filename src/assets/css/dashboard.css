@@ -1,0 +1,180 @@
+/* ================= LAYOUT ================= */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ================= SIDEBAR ================= */
+.dashboard-sidebar {
+  width: 260px;
+  padding: 30px 20px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(0,200,255,0.2);
+}
+
+.profile-card {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.profile-card h4 {
+  margin-top: 10px;
+  color: #e0f2fe;
+}
+
+.profile-card p {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* Sidebar Menu */
+.sidebar-menu a {
+  display: block;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #cbd5f5;
+  transition: 0.3s;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu .active {
+  background: rgba(56,189,248,0.2);
+  color: #38bdf8;
+}
+
+/* ================= MAIN ================= */
+.dashboard-main {
+  flex: 1;
+  padding: 60px 40px;
+}
+
+/* HEADER */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  font-size: 36px;
+  background: linear-gradient(90deg, #00f2fe, #4facfe);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid rgba(0,200,255,0.4);
+  color: #38bdf8;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* ================= STATS ================= */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 25px;
+  margin: 40px 0;
+}
+
+.stat-card {
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,200,255,0.35);
+  box-shadow: 0 0 18px rgba(0,200,255,0.25);
+}
+
+.stat-card span {
+  font-size: 32px;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+/* ================= GRID ================= */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+  gap: 30px;
+}
+
+.glass-card {
+  padding: 30px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,200,255,0.35);
+  box-shadow: 0 0 25px rgba(0,200,255,0.25);
+}
+
+.center {
+  text-align: center;
+}
+
+.circle-wrap {
+  width: 160px;
+  margin: 20px auto;
+}
+
+/* ================= ANIMATION ================= */
+.animated {
+  animation: fadeUp 0.6s ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= DARK MODE ================= */
+body.dark-mode .dashboard-sidebar,
+body.dark-mode .dashboard-main {
+  background: transparent;
+}
+/* ================= THEME TOGGLE ANIMATION ================= */
+
+/* ================= THEME TOGGLE ANIMATION ================= */
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  padding: 10px 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.toggle-icon {
+  display: inline-block;
+  font-size: 22px;
+  transition: transform 0.6s ease;
+}
+
+/* Default Sun */
+.toggle-icon::before {
+  content: "☀️";
+}
+
+/* Rotate animation */
+.theme-toggle.active .toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Switch to Moon in dark mode */
+body.dark-mode .toggle-icon::before {
+  content: "🌙";
+}

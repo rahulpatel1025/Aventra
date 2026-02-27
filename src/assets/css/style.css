@@ -1,0 +1,1172 @@
+/********** Template CSS **********/
+:root {
+    /* --primary: #06BBCC; */
+    --primary: #74b1fc;
+    --light: #F0FBFC;
+    --dark: #181d38;
+}
+
+.fw-medium {
+    font-weight: 600 !important;
+}
+
+.fw-semi-bold {
+    font-weight: 700 !important;
+}
+
+.back-to-top {
+    position: fixed;
+    display: none;
+    right: 45px;
+    bottom: 5px;
+    z-index: 99;
+    border-radius: 4px;
+    /* height: 35px;
+    width: 35px; */
+}
+
+
+/*** Spinner ***/
+#spinner {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .5s ease-out, visibility 0s linear .5s;
+    z-index: 99999;
+}
+
+#spinner.show {
+    transition: opacity .5s ease-out, visibility 0s linear 0s;
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/*** Button ***/
+.btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    transition: .5s;
+}
+
+.btn.btn-primary,
+.btn.btn-secondary {
+    color: #FFFFFF;
+}
+
+.btn-square {
+    width: 38px;
+    height: 38px;
+}
+
+.btn-sm-square {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-lg-square {
+    width: 48px;
+    height: 48px;
+}
+
+.btn-square,
+.btn-sm-square,
+.btn-lg-square {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: normal;
+    border-radius: 0px;
+}
+
+
+/*** Navbar ***/
+.navbar .dropdown-toggle::after {
+    border: none;
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    margin-right: 30px;
+    padding: 25px 0;
+    color: #FFFFFF;
+    font-size: 15px;
+    text-transform: uppercase;
+    outline: none;
+}
+
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link.active {
+    color: var(--primary);
+}
+
+@media (max-width: 991.98px) {
+    .navbar-light .navbar-nav .nav-link  {
+        margin-right: 0;
+        padding: 10px 0;
+    }
+
+    .navbar-light .navbar-nav {
+        border-top: 1px solid #EEEEEE;
+    }
+}
+
+.navbar-light .navbar-brand,
+.navbar-light a.btn {
+    height: 75px;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: var(--dark);
+    font-weight: 500;
+}
+
+.navbar-light.sticky-top {
+    top: -100px;
+    transition: .5s;
+}
+
+@media (min-width: 992px) {
+    .navbar .nav-item .dropdown-menu {
+        display: block;
+        margin-top: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: .5s;
+    }
+
+    .navbar .dropdown-menu.fade-down {
+        top: 100%;
+        transform: rotateX(-75deg);
+        transform-origin: 0% 0%;
+    }
+
+    .navbar .nav-item:hover .dropdown-menu {
+        top: 100%;
+        transform: rotateX(0deg);
+        visibility: visible;
+        transition: .5s;
+        opacity: 1;
+    }
+}
+
+
+/*** Header carousel ***/
+@media (max-width: 768px) {
+    .header-carousel .owl-carousel-item {
+        position: relative;
+        min-height: 500px;
+    }
+    
+    .header-carousel .owl-carousel-item img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.header-carousel .owl-nav {
+    position: absolute;
+    top: 50%;
+    right: 8%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+}
+
+.header-carousel .owl-nav .owl-prev,
+.header-carousel .owl-nav .owl-next {
+    margin: 7px 0;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    background: transparent;
+    border: 1px solid #FFFFFF;
+    font-size: 22px;
+    transition: .5s;
+}
+
+.header-carousel .owl-nav .owl-prev:hover,
+.header-carousel .owl-nav .owl-next:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.page-header {
+    background: linear-gradient(rgba(24, 29, 56, .7), rgba(24, 29, 56, .7)), url(../img/carousel-1.jpg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.page-header-inner {
+    background: rgba(15, 23, 43, .7);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--light);
+}
+
+
+/*** Section Title ***/
+.section-title {
+    position: relative;
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+.section-title::before {
+    position: absolute;
+    content: "";
+    width: calc(100% + 80px);
+    height: 2px;
+    top: 4px;
+    left: -40px;
+    background: var(--primary);
+    z-index: -1;
+}
+
+.section-title::after {
+    position: absolute;
+    content: "";
+    width: calc(100% + 120px);
+    height: 2px;
+    bottom: 5px;
+    left: -60px;
+    background: var(--primary);
+    z-index: -1;
+}
+
+.section-title.text-start::before {
+    width: calc(100% + 40px);
+    left: 0;
+}
+
+.section-title.text-start::after {
+    width: calc(100% + 60px);
+    left: 0;
+}
+
+
+/*** Service ***/
+.service-item {
+    background: var(--light);
+    transition: .5s;
+}
+
+.service-item:hover {
+    margin-top: -10px;
+    background: var(--primary);
+}
+
+.service-item * {
+    transition: .5s;
+}
+
+.service-item:hover * {
+    color: var(--light) !important;
+}
+
+
+/*** Categories & Courses ***/
+.category img,
+.course-item img {
+    transition: .5s;
+}
+
+.category a:hover img,
+.course-item:hover img {
+    transform: scale(1.1);
+}
+
+
+/*** Team ***/
+.team-item img {
+    transition: .5s;
+}
+
+.team-item:hover img {
+    transform: scale(1.1);
+}
+
+
+/*** Testimonial ***/
+.testimonial-carousel::before {
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    z-index: 1;
+}
+
+.testimonial-carousel::after {
+    position: absolute;
+    content: "";
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(to left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    z-index: 1;
+}
+
+@media (min-width: 768px) {
+    .testimonial-carousel::before,
+    .testimonial-carousel::after {
+        width: 200px;
+    }
+}
+
+@media (min-width: 992px) {
+    .testimonial-carousel::before,
+    .testimonial-carousel::after {
+        width: 300px;
+    }
+}
+
+.testimonial-carousel .owl-item .testimonial-text,
+.testimonial-carousel .owl-item.center .testimonial-text * {
+    transition: .5s;
+}
+
+.testimonial-carousel .owl-item.center .testimonial-text {
+    background: var(--primary) !important;
+}
+
+.testimonial-carousel .owl-item.center .testimonial-text * {
+    color: #FFFFFF !important;
+}
+
+.testimonial-carousel .owl-dots {
+    margin-top: 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.testimonial-carousel .owl-dot {
+    position: relative;
+    display: inline-block;
+    margin: 0 5px;
+    width: 15px;
+    height: 15px;
+    border: 1px solid #CCCCCC;
+    transition: .5s;
+}
+
+.testimonial-carousel .owl-dot.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+
+/*** Footer ***/
+
+/* Social icons */
+.footer .btn.btn-social {
+    margin-right: 6px;
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: rgba(255,255,255,0.85);
+    font-weight: normal;
+
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.footer .btn.btn-social:hover {
+    color: #ffffff;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* ===============================
+   ✅ Quick Links Fix
+================================ */
+
+.footer .btn.btn-link {
+    display: block;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    margin-bottom: 10px;
+    padding: 0;
+
+    text-align: left;
+    color: rgba(255,255,255,0.8) !important;
+    font-size: 15px;
+    font-weight: 400;
+    text-transform: capitalize;
+
+    transition: all 0.25s ease;
+}
+
+/* Arrow icon */
+.footer .btn.btn-link::before {
+    position: relative;
+    content: "\f105";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+
+    margin-right: 10px;
+    color: rgba(255,255,255,0.5);
+}
+
+/* Hover animation */
+.footer .btn.btn-link:hover {
+    color: #ffffff !important;
+    transform: translateX(6px);
+    letter-spacing: 0.3px;
+}
+
+/* Subtle divider between links */
+.footer .btn.btn-link:not(:last-child) {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 10px;
+}
+
+/* Copyright */
+.footer .copyright {
+    padding: 25px 0;
+    font-size: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.footer .copyright a {
+    color: rgba(255,255,255,0.85);
+}
+
+/* Footer menu links */
+.footer .footer-menu a {
+    margin-right: 14px;
+    padding-right: 14px;
+    border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+.footer .footer-menu a:last-child {
+    margin-right: 0;
+    padding-right: 0;
+    border-right: none;
+}
+
+/* =========================================================
+   🚀 Coming Soon Section – Modern Card Style
+   ========================================================= */
+
+.coming-soon-card {
+    max-width: 900px;
+    margin: 40px auto 0;
+    text-align: center;
+    padding: 60px 40px;
+    border-radius: 24px;
+
+    /* Glass gradient */
+    background: linear-gradient(
+        135deg,
+        rgba(116, 177, 252, 0.18),
+        rgba(6, 187, 204, 0.18)
+    );
+
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+    transition: all 0.35s ease;
+}
+
+.coming-soon-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
+}
+
+/* Title */
+.coming-soon-card h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 18px;
+}
+
+/* Description */
+.coming-soon-card p {
+    font-size: 18px;
+    color: #555;
+    max-width: 680px;
+    margin: 0 auto 22px;
+    line-height: 1.6;
+}
+
+/* Badge */
+.coming-soon-card span {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 26px;
+    border-radius: 30px;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .coming-soon-card {
+        padding: 40px 25px;
+    }
+
+    .coming-soon-card h2 {
+        font-size: 26px;
+    }
+
+    .coming-soon-card p {
+        font-size: 16px;
+    }
+}
+/* =========================================================
+   🌙 DARK MODE THEME
+   ========================================================= */
+
+body.dark-mode {
+    background-color: #020617;
+    color: #e5e7eb;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Navbar */
+body.dark-mode .modern-navbar {
+    background: #020617;
+}
+
+body.dark-mode .menu {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+body.dark-mode .menu a {
+    color: #e5e7eb;
+}
+
+body.dark-mode .logo {
+    color: #f8fafc;
+}
+
+/* Buttons */
+body.dark-mode .primary-btn {
+    background: #020617;
+    color: #e5e7eb;
+    border-color: #334155;
+}
+
+body.dark-mode .primary-btn:hover {
+    background: #334155;
+}
+
+/* Coming Soon Card */
+body.dark-mode .coming-soon-card {
+    background: linear-gradient(
+        135deg,
+        rgba(30, 41, 59, 0.95),
+        rgba(2, 6, 23, 0.95)
+    );
+    color: #f1f5f9;
+}
+
+body.dark-mode .coming-soon-card p {
+    color: #cbd5f5;
+}
+
+/* Footer */
+body.dark-mode .footer {
+    background: #020617;
+}
+
+/* Sections */
+body.dark-mode .container,
+body.dark-mode .category,
+body.dark-mode .service-item {
+    background: transparent;
+}
+/* ================= Responsive Typography ================= */
+
+h1 {
+  font-size: clamp(28px, 4vw, 52px);
+}
+
+h2 {
+  font-size: clamp(22px, 3vw, 36px);
+}
+
+p {
+  font-size: clamp(14px, 1.6vw, 18px);
+}
+/* ================= Course Cards Responsive ================= */
+
+.course-item {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 576px) {
+  .course-item {
+    max-width: 100%;
+  }
+}
+/* ================= Image Responsive ================= */
+
+img {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+/* ================= Touch Optimization ================= */
+
+button, .btn, a {
+  min-height: 44px;
+}
+
+
+/* ================= GLOBAL BACKGROUND THEME ================= */
+
+body {
+  background: #f8fafc;
+  color: #020617;
+  min-height: 100vh;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* Dark mode gradient */
+body.dark-mode {
+  background: radial-gradient(
+    circle at top,
+    #3b82f6 0%,
+    #1e1b4b 35%,
+    #020617 80%
+  );
+  background-size: 200% 200%;
+  animation: backgroundFlow 14s ease infinite;
+  color: #e5e7eb;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  body.dark-mode {
+    animation: none;
+  }
+}
+
+
+@keyframes heroGradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ================= HERO GRADIENT TEXT ================= */
+
+.hero-title {
+  font-size: clamp(36px, 5vw, 72px);
+  font-weight: 800;
+  line-height: 1.1;
+
+  background: linear-gradient(
+    90deg,
+    #60a5fa,
+    #a78bfa,
+    #22d3ee
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 0 30px rgba(96, 165, 250, 0.35);
+  animation: heroGradientMove 6s ease infinite;
+}
+
+/* ================= Gradient Heading Text ================= */
+
+.gradient-text {
+  background: linear-gradient(
+    90deg,
+    #60a5fa,
+    #a78bfa,
+    #22d3ee
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 0 30px rgba(96, 165, 250, 0.35);
+  animation: heroGradientMove 6s ease infinite;
+}
+
+/* ================= Testimonial Dark Mode Fix ================= */
+
+body.dark-mode .testimonial-text {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.95),
+    rgba(2, 6, 23, 0.95)
+  ) !important;
+
+  color: #e5e7eb !important;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Paragraph text inside testimonial */
+body.dark-mode .testimonial-text p {
+  color: #e5e7eb !important;
+}
+
+/* Student name */
+body.dark-mode .carousel-item h5 {
+  color: #f8fafc;
+}
+
+/* Student role */
+body.dark-mode .carousel-item p {
+  color: #cbd5f5;
+}
+
+/* Carousel dots */
+body.dark-mode .carousel-indicators button {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+body.dark-mode .carousel-indicators .active {
+  background-color: #60a5fa;
+}
+/* ================= HERO DESCRIPTION ================= */
+
+.hero-description {
+  max-width: 520px;
+  margin-top: 16px;
+  margin-bottom: 20px; /* ⬅️ reduced to stabilize spacing */
+
+  font-size: 1.05rem;
+  line-height: 1.65;
+  letter-spacing: 0.2px;
+
+  color: rgba(255, 255, 255, 0.92);
+
+  background: rgba(0, 0, 0, 0.28);
+  padding: 14px 18px;
+  border-radius: 12px;
+
+  box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .hero-description {
+    font-size: 0.9rem;
+    padding: 12px 14px;
+  }
+}
+
+/* ================= HERO ACTIONS ================= */
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Prevent buttons dropping too far */
+.hero-actions .btn {
+  white-space: nowrap;
+}
+
+
+/* ================= HERO TAGLINE ================= */
+
+.hero-tagline {
+  display: inline-block;
+  margin-bottom: 16px; /* ⬅️ slightly tighter */
+  padding: 9px 18px;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  color: #e0f2fe;
+
+  background: linear-gradient(
+    90deg,
+    rgba(96, 165, 250, 0.25),
+    rgba(167, 139, 250, 0.25),
+    rgba(34, 211, 238, 0.25)
+  );
+
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+
+  /* Glow kept controlled */
+  box-shadow:
+    0 0 10px rgba(96, 165, 250, 0.45),
+    0 0 22px rgba(167, 139, 250, 0.35),
+    0 0 36px rgba(34, 211, 238, 0.25);
+
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* 🌟 Glow breathing animation */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(96, 165, 250, 0.45),
+      0 0 22px rgba(167, 139, 250, 0.35),
+      0 0 36px rgba(34, 211, 238, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 16px rgba(96, 165, 250, 0.7),
+      0 0 32px rgba(167, 139, 250, 0.55),
+      0 0 52px rgba(34, 211, 238, 0.45);
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .hero-tagline {
+    font-size: 0.85rem;
+    padding: 8px 14px;
+  }
+}
+/* ===============================
+   🎯 What You Get Section Styling
+================================ */
+
+.what-you-get-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 45px 50px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+}
+
+.what-you-get-card h2 {
+  font-size: 34px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #0f172a;
+}
+
+.what-you-get-card h4 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  color: #334155;
+}
+
+.what-you-get-card h4 span {
+  color: #06b6d4;
+}
+
+.what-you-get-card .highlight {
+  background: rgba(6,182,212,0.1);
+  padding: 14px 18px;
+  border-left: 4px solid #06b6d4;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.what-you-get-card ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.what-you-get-card li {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  color: #1e293b;
+}
+
+/* Image card spacing */
+.category img {
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+/* ===============================
+   🌙 Dark Mode Support
+================================ */
+
+body.dark-mode .what-you-get-card {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(59,130,246,0.35);
+  box-shadow:
+    0 0 20px rgba(59,130,246,0.25),
+    inset 0 0 10px rgba(255,255,255,0.05);
+}
+
+body.dark-mode .what-you-get-card h2,
+body.dark-mode .what-you-get-card h4,
+body.dark-mode .what-you-get-card li {
+  color: rgba(255,255,255,0.9);
+}
+
+body.dark-mode .what-you-get-card .highlight {
+  background: rgba(59,130,246,0.15);
+  border-left-color: #60a5fa;
+}
+
+
+/* =========================================================
+   🖤 PURE BLACK & WHITE DARK THEME OVERRIDES
+   Place this at the END of style.css
+   ========================================================= */
+
+/* ---------- Global ---------- */
+
+body.dark-mode {
+  background: #050505 !important;
+  color: #ffffff !important;
+  animation: none !important;   /* remove animated blue gradient */
+}
+
+body.dark-mode * {
+  border-color: rgba(255,255,255,0.08);
+}
+
+/* ---------- Typography ---------- */
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5 {
+  color: #ffffff !important;
+}
+
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode li {
+  color: #d1d5db !important;
+}
+
+/* ---------- Navbar ---------- */
+
+body.dark-mode .modern-navbar {
+  background: rgba(5,5,5,0.9) !important;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+body.dark-mode .menu {
+  background: rgba(255,255,255,0.04) !important;
+  box-shadow: 0 0 20px rgba(255,255,255,0.05);
+}
+
+body.dark-mode .menu a {
+  color: #f9fafb !important;
+}
+
+body.dark-mode .menu a:hover {
+  opacity: 0.7;
+}
+
+/* ---------- Buttons ---------- */
+
+body.dark-mode .btn,
+body.dark-mode .primary-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  box-shadow: 0 0 12px rgba(255,255,255,0.25);
+}
+
+body.dark-mode .btn:hover,
+body.dark-mode .primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(255,255,255,0.4);
+}
+
+/* ---------- Hero Title (remove blue gradient) ---------- */
+
+body.dark-mode .hero-title,
+body.dark-mode .gradient-text {
+  background: none !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 0 18px rgba(255,255,255,0.15);
+  animation: none !important;
+}
+
+/* ---------- Hero Description ---------- */
+
+body.dark-mode .hero-description {
+  background: rgba(255,255,255,0.04) !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+}
+
+/* ---------- Hero Tagline ---------- */
+
+body.dark-mode .hero-tagline {
+  background: rgba(255,255,255,0.08) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 0 12px rgba(255,255,255,0.12);
+  animation: none !important;
+}
+
+/* ---------- Cards (Services, Sections, Glass) ---------- */
+
+body.dark-mode .service-item,
+body.dark-mode .service-card,
+body.dark-mode .glass-card,
+body.dark-mode .what-you-get-card,
+body.dark-mode .coming-soon-card {
+  background: #111111 !important;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+
+/* Card text */
+body.dark-mode .service-card h5,
+body.dark-mode .service-item h5 {
+  color: #ffffff !important;
+}
+
+/* ---------- Info Highlight Card ---------- */
+
+body.dark-mode .service-info {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* ---------- Carousel / Testimonial ---------- */
+
+body.dark-mode .testimonial-text {
+  background: #0f0f0f !important;
+  color: #e5e7eb !important;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+
+body.dark-mode .carousel-indicators button {
+  background-color: rgba(255,255,255,0.4) !important;
+}
+
+body.dark-mode .carousel-indicators .active {
+  background-color: #ffffff !important;
+}
+
+/* ---------- Footer ---------- */
+
+body.dark-mode .footer {
+  background: #050505 !important;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+body.dark-mode .footer a {
+  color: #d1d5db !important;
+}
+
+/* ---------- Remove All Blue Glows ---------- */
+
+body.dark-mode * {
+  --primary: #ffffff;
+  --dark: #000000;
+}
+
+/* ================= Footer Logo Branding ================= */
+
+.footer-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.footer-logo:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.45));
+}
+
+/* Light theme safety */
+body:not(.dark-mode) .footer-logo {
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
+}
+
+/* ================= Footer Branding ================= */
+
+.footer-branding {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.powered-text {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.powered-text a {
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+}
+
+.footer-logo {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.footer-logo:hover {
+  transform: scale(1.08);
+}
+
+/* 🌙 DARK MODE */
+.logo-light {
+  display: none;
+}
+
+body.dark-mode .logo-dark {
+  display: inline-block;
+}
+
+body.dark-mode .logo-light {
+  display: none;
+}
+
+/* ☀️ LIGHT MODE */
+body:not(.dark-mode) .logo-dark {
+  display: none;
+}
+
+body:not(.dark-mode) .logo-light {
+  display: inline-block;
+}
+
+/* Mobile alignment */
+@media (max-width: 768px) {
+  .footer-branding {
+    justify-content: center;
+    margin-top: 10px;
+  }
+}

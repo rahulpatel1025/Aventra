@@ -1,0 +1,333 @@
+Now let me create a standalone CSS file that you can easily integrate into your localhost:5173 site:
+Action: file_editor create /app/frontend/public/smooth-scroll-bw.css --file-text "/* ========================================
+   BLACK & WHITE SMOOTH SCROLL TRANSITIONS
+   Standalone CSS - Add to any website
+   ======================================== */
+
+/* 
+USAGE INSTRUCTIONS:
+1. Add this CSS file to your project
+2. Add classes to elements you want to animate:
+   - scroll-fade-in: Fade in from bottom
+   - scroll-slide-left: Slide in from left
+   - scroll-slide-right: Slide in from right
+   - scroll-zoom-in: Zoom in effect
+   - parallax-bg: Parallax background (add data-speed attribute)
+
+3. Add this JavaScript to your page:
+   <script>
+     document.addEventListener('DOMContentLoaded', function() {
+       // Smooth scroll
+       document.documentElement.style.scrollBehavior = 'smooth';
+       
+       // Intersection Observer for animations
+       const observer = new IntersectionObserver((entries) => {
+         entries.forEach(entry => {
+           if (entry.isIntersecting) {
+             entry.target.classList.add('is-visible');
+           }
+         });
+       }, {
+         threshold: 0.15,
+         rootMargin: '0px 0px -100px 0px'
+       });
+
+       // Observe animated elements
+       document.querySelectorAll('.scroll-fade-in, .scroll-slide-left, .scroll-slide-right, .scroll-zoom-in').forEach((el) => {
+         observer.observe(el);
+       });
+
+       // Parallax effect
+       window.addEventListener('scroll', () => {
+         const scrolled = window.pageYOffset;
+         document.querySelectorAll('.parallax-bg').forEach((el) => {
+           const speed = el.dataset.speed || 0.5;
+           el.style.transform = \`translateY(\${scrolled * speed}px)\`;
+         });
+       });
+     });
+   </script>
+======================================== */
+
+/* ========================================
+   BASE SETUP
+   ======================================== */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* ========================================
+   SCROLL ANIMATION CLASSES
+   ======================================== */
+
+/* Fade In Effect */
+.scroll-fade-in {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-fade-in.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Slide from Left */
+.scroll-slide-left {
+  opacity: 0;
+  transform: translateX(-100px);
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-slide-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Slide from Right */
+.scroll-slide-right {
+  opacity: 0;
+  transform: translateX(100px);
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-slide-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Zoom In Effect */
+.scroll-zoom-in {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-zoom-in.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ========================================
+   PARALLAX EFFECTS
+   ======================================== */
+.parallax-bg {
+  will-change: transform;
+  transition: transform 0.1s ease-out;
+}
+
+/* ========================================
+   BLACK & WHITE THEME UTILITIES
+   ======================================== */
+
+/* Section Styles */
+.bw-section-dark {
+  background: #000000;
+  color: #ffffff;
+}
+
+.bw-section-light {
+  background: #ffffff;
+  color: #000000;
+}
+
+.bw-section-gray {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+/* Text Styles */
+.bw-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.bw-subtitle {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* Button Styles */
+.bw-button {
+  padding: 1rem 3rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 2px solid;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.bw-button-primary {
+  color: #000000;
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.bw-button-primary:hover {
+  background: transparent;
+  color: #ffffff;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+.bw-button-secondary {
+  color: #ffffff;
+  background: #000000;
+  border-color: #000000;
+}
+
+.bw-button-secondary:hover {
+  background: transparent;
+  color: #000000;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Styles */
+.bw-card {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 2rem;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bw-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 60px rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.bw-card-light {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  color: #000000;
+}
+
+.bw-card-light:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border-color: #000000;
+}
+
+/* ========================================
+   GRADIENT OVERLAYS (Subtle)
+   ======================================== */
+.bw-gradient-dark {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+}
+
+.bw-gradient-light {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 50%, #ffffff 100%);
+}
+
+.bw-gradient-radial {
+  background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+}
+
+/* ========================================
+   CUSTOM SCROLLBAR
+   ======================================== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+.scroll-fade-in,
+.scroll-slide-left,
+.scroll-slide-right,
+.scroll-zoom-in,
+.parallax-bg {
+  will-change: transform, opacity;
+}
+
+/* ========================================
+   ACCESSIBILITY: REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  .scroll-fade-in,
+  .scroll-slide-left,
+  .scroll-slide-right,
+  .scroll-zoom-in {
+    transition: none;
+    opacity: 1;
+    transform: none !important;
+  }
+  
+  .parallax-bg {
+    transform: none !important;
+  }
+  
+  .bw-card,
+  .bw-button {
+    transition: none;
+  }
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+@media (max-width: 768px) {
+  .bw-title {
+    font-size: 2rem;
+  }
+  
+  .bw-subtitle {
+    font-size: 1rem;
+  }
+  
+  .bw-button {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+  }
+  
+  /* Adjust animation distances for mobile */
+  .scroll-fade-in {
+    transform: translateY(30px);
+  }
+  
+  .scroll-slide-left {
+    transform: translateX(-50px);
+  }
+  
+  .scroll-slide-right {
+    transform: translateX(50px);
+  }
+}
+"

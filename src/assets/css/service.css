@@ -1,0 +1,146 @@
+.service-section {
+  padding: 80px 20px;
+  background: #f8fbff;
+}
+
+.service-container {
+  max-width: 1200px;
+  margin: auto;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+}
+
+.service-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 40px 26px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  cursor: default;
+  transition: all 0.35s ease;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.service-card i {
+  color: #06b6d4;
+  margin-bottom: 18px;
+}
+
+.service-card h5 {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Hover glow */
+.service-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 12px 35px rgba(6, 182, 212, 0.35),
+    0 0 25px rgba(6, 182, 212, 0.25);
+}
+
+.service-info {
+  background: linear-gradient(135deg, #0dcaf0, #00bcd4);
+  color: #fff;
+  border-radius: 18px;
+  padding: 30px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.service-info:hover {
+  transform: translateY(-4px);
+}
+
+.service-info p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* ===========================
+   🌙 Dark Mode Styling
+   Matches your animated theme
+=========================== */
+
+body.dark-mode .service-section {
+  background: transparent;
+  position: relative;
+}
+
+/* Subtle glow overlay */
+body.dark-mode .service-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top,
+    rgba(59, 130, 246, 0.18),
+    rgba(30, 27, 75, 0.55),
+    rgba(2, 6, 23, 0.85)
+  );
+  z-index: 0;
+}
+
+/* Keep content above overlay */
+body.dark-mode .service-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Glass cards */
+body.dark-mode .service-card {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  box-shadow:
+    0 0 22px rgba(59, 130, 246, 0.22),
+    inset 0 0 12px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .service-card h5 {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+body.dark-mode .service-card i {
+  color: #38bdf8;
+}
+
+/* Hover glow */
+body.dark-mode .service-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow:
+    0 0 45px rgba(59, 130, 246, 0.65),
+    inset 0 0 16px rgba(255, 255, 255, 0.08);
+}
+
+
+/* =========================================
+   ✅ Fix: Info Card Text Visibility in Dark Mode
+========================================= */
+
+body.dark-mode .service-info {
+  background: #ffffff !important;     /* white card */
+  color: #020617 !important;          /* readable dark text */
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35) !important;
+}
+
+body.dark-mode .service-info p {
+  color: #020617 !important;
+  font-weight: 500;
+}

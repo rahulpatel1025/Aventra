@@ -1,0 +1,184 @@
+/* ===============================
+   FinTech Course Card
+================================ */
+
+.fintech-section {
+  padding: 90px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Card */
+.fintech-card {
+  max-width: 920px;
+  width: 100%;
+  padding: 60px 65px;
+  border-radius: 28px;
+
+  background: #ffffff;
+  color: #020617;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fintech-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 70px rgba(0,0,0,0.12);
+}
+
+/* Badge */
+.fintech-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+
+  background: #020617;
+  color: #ffffff;
+  margin-bottom: 22px;
+}
+
+/* Title */
+.fintech-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+/* Subtitle */
+.fintech-subtitle {
+  max-width: 640px;
+  margin: 0 auto 28px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+/* Feature list */
+.fintech-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 34px;
+  max-width: 560px;
+}
+
+.fintech-features li {
+  padding: 8px 0;
+  font-size: 15.5px;
+  color: #020617;
+}
+
+/* Price */
+.fintech-price {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 28px;
+}
+
+.fintech-price span {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* Buttons */
+.fintech-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.fintech-btn {
+  padding: 14px 36px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s ease;
+}
+
+.fintech-btn.primary {
+  background: #020617;
+  color: #ffffff;
+}
+
+.fintech-btn.primary:hover {
+  background: #111827;
+}
+
+.fintech-btn.secondary {
+  background: transparent;
+  color: #020617;
+  border: 1px solid #020617;
+}
+
+.fintech-btn.secondary:hover {
+  background: #020617;
+  color: #ffffff;
+}
+
+/* ===============================
+   🌙 Dark Mode
+================================ */
+
+body.dark-mode .fintech-card {
+  background: #020617;
+  color: #f8fafc;
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 0 60px rgba(255,255,255,0.05);
+}
+
+body.dark-mode .fintech-subtitle {
+  color: #cbd5f5;
+}
+
+body.dark-mode .fintech-features li {
+  color: #e5e7eb;
+}
+
+body.dark-mode .fintech-badge {
+  background: #ffffff;
+  color: #020617;
+}
+
+body.dark-mode .fintech-btn.primary {
+  background: #ffffff;
+  color: #020617;
+}
+
+body.dark-mode .fintech-btn.primary:hover {
+  background: #e5e7eb;
+}
+
+body.dark-mode .fintech-btn.secondary {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+body.dark-mode .fintech-btn.secondary:hover {
+  background: #ffffff;
+  color: #020617;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .fintech-card {
+    padding: 40px 28px;
+  }
+
+  .fintech-actions {
+    flex-direction: column;
+  }
+
+  .fintech-btn {
+    width: 100%;
+  }
+}

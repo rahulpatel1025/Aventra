@@ -1,0 +1,140 @@
+/* ===============================
+   ☀️ Moto Section – LIGHT THEME (Default)
+================================ */
+
+.moto-section {
+  padding: 100px 20px 80px;
+
+  /* Original bright theme */
+  background: linear-gradient(
+    to bottom,
+    #f8fafc,
+    #eef2ff
+  );
+}
+
+/* Center container */
+.moto-container {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* Main Card */
+.moto-card {
+  max-width: 900px;
+  width: 100%;
+  padding: 55px 65px;
+  text-align: center;
+
+  background: #ffffff;
+  border-radius: 28px;
+  border: 1px solid rgba(0,0,0,0.08);
+
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Title */
+.moto-card h2 {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  letter-spacing: 0.4px;
+  color: #020617;
+}
+
+/* Text */
+.moto-card p {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #334155;
+  max-width: 760px;
+  margin: auto;
+}
+
+/* CTA Button */
+.moto-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-top: 28px;
+  padding: 14px 42px;
+  border-radius: 50px;
+
+  background: #020617;
+  color: #ffffff !important;
+
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+
+  border: none;
+  outline: none;
+
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* ===============================
+   🌙 Moto Section – DARK THEME
+================================ */
+
+body.dark-mode .moto-section {
+  background: linear-gradient(
+    to bottom,
+    #050505,
+    #0b0b0b
+  );
+}
+
+body.dark-mode .moto-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-mode .moto-card h2 {
+  color: #ffffff;
+}
+
+body.dark-mode .moto-card p {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+body.dark-mode .moto-btn {
+  background: #ffffff;
+  color: #000000 !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+body.dark-mode .moto-btn:hover {
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
+}
+
+/* ===============================
+   📱 Mobile Optimization
+================================ */
+
+@media (max-width: 768px) {
+  .moto-section {
+    padding: 70px 15px 60px;
+  }
+
+  .moto-card {
+    padding: 38px 26px;
+    border-radius: 22px;
+  }
+
+  .moto-card h2 {
+    font-size: 26px;
+  }
+
+  .moto-card p {
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+}

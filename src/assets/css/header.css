@@ -1,0 +1,57 @@
+.modern-header {
+  min-height: 55vh;
+  width: 100%;
+  background: radial-gradient(
+    circle at top,
+    #050505 0%,
+    #000000 60%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.modern-header-content {
+  padding: 40px 20px;
+}
+
+.modern-title {
+  font-size: clamp(2.8rem, 5vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  line-height: 1.15;
+}
+
+.modern-title span {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modern-subtitle {
+  margin-top: 18px;
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.3px;
+}
+
+/* Subtle glow effect */
+.modern-title {
+  text-shadow:
+    0 0 20px rgba(99, 102, 241, 0.35),
+    0 0 40px rgba(56, 189, 248, 0.15);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .modern-header {
+    min-height: 45vh;
+  }
+
+  .modern-subtitle {
+    font-size: 1rem;
+  }
+}
