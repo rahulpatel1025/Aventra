@@ -59,7 +59,6 @@ app.use(async (req, res, next) => {
     let dbUser = await User.findOne({ clerkId });
 
     if (!dbUser) {
-      // Fetch user details from Clerk securely
       const clerkUser = await clerkClient.users.getUser(clerkId);
 
       const userCount = await User.countDocuments();
@@ -76,8 +75,8 @@ app.use(async (req, res, next) => {
     }
 
     req.user = dbUser;
-
     next();
+
   } catch (err) {
     console.error("Auto-sync error:", err);
     res.status(500).json({ error: "Authentication error" });
@@ -89,6 +88,11 @@ app.use("/admin", requireAuth(), adminRoutes);
 app.use("/courses", courseRoutes);
 app.use("/quiz", quizRoutes);
 app.use("/payments", paymentRoutes);
+
+// ✅ IMPORTANT: AUTH CHECK ROUTE (Triggers Auto Sync)
+app.get("/api/me", requireAuth(), (req, res) => {
+  res.json(req.user);
+});
 
 // ================= MONGODB =================
 mongoose
@@ -155,5 +159,3 @@ app.delete("/feedback/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-

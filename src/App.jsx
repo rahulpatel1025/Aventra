@@ -50,31 +50,30 @@ function App() {
 
   const { user, isLoaded } = useUser();
 
-  // 🔥 GLOBAL AUTO SYNC ON LOGIN
+  // 🔥 GLOBAL AUTO-SYNC USING BACKEND MIDDLEWARE
   useEffect(() => {
 
     if (!isLoaded || !user) return;
 
-    const syncUser = async () => {
+    const triggerAutoSync = async () => {
       try {
-        await axios.post(
-          "http://localhost:3000/api/user/sync",
-          {
-            clerkId: user.id,
-            fullName: user.fullName,
-            email: user.primaryEmailAddress?.emailAddress,
-            profileImage: user.imageUrl,
-          }
-        );
 
-        console.log("✅ User synced to MongoDB");
+        const token = await user.getToken();
+
+        await axios.get("http://localhost:3000/api/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("✅ User auto-synced via /api/me");
 
       } catch (err) {
-        console.error("❌ Sync failed:", err);
+        console.error("❌ Auto-sync failed:", err);
       }
     };
 
-    syncUser();
+    triggerAutoSync();
 
   }, [user, isLoaded]);
 
@@ -82,6 +81,7 @@ function App() {
     <>
       <Routes>
 
+        {/* MAIN PAGES */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About1 />} />
         <Route path="/courses" element={<Courses1 />} />
@@ -90,11 +90,14 @@ function App() {
         <Route path="/contact" element={<Contact1 />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
+        {/* AUTH / PROFILE */}
         <Route path="/register" element={<SignUp />} />
         <Route path="/profile" element={<Profile />} />
 
+        {/* QUIZ */}
         <Route path="/quiz/fintech" element={<FintechQuiz />} />
 
+        {/* COURSES */}
         <Route path="/courses/java" element={<Javaprog />} />
         <Route path="/courses/dsa" element={<Dsa />} />
         <Route path="/courses/mern" element={<Mern />} />
@@ -113,24 +116,29 @@ function App() {
         <Route path="/courses/fullstack/html" element={<Html />} />
         <Route path="/courses/fullstack/css" element={<Css />} />
 
+        {/* PROGRAMMING */}
         <Route path="/cources/programming" element={<Programming />} />
         <Route path="/cources/programming/java" element={<Javaprog />} />
         <Route path="/cources/programming/advJava" element={<Advjava />} />
         <Route path="/cources/programming/javascript" element={<Javascript />} />
 
+        {/* LIBRARY & FEEDBACK */}
         <Route path="/library" element={<ShowBook />} />
         <Route path="/feedback" element={<FeedbackAll />} />
 
         <Route path="/courses/:slug" element={<FintechCourseDetails />} />
 
+        {/* CHECKOUT */}
         <Route path="/checkout/details" element={<CheckoutDetails />} />
         <Route path="/checkout/referral" element={<CheckoutReferral />} />
         <Route path="/checkout/payment" element={<CheckoutPayment />} />
 
+        {/* ERROR */}
         <Route path="*" element={<ErrorPage />} />
 
       </Routes>
 
+      {/* GLOBAL CHATBOT */}
       <BotpressChatbot />
     </>
   );
