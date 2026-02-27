@@ -1,5 +1,8 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import { useEffect } from "react";
+import axios from "axios";
 
 // Pages
 import Home from "./Components/Pages/Home";
@@ -37,19 +40,48 @@ import FintechQuiz from "./Components/Quiz/FintechQuiz";
 import ShowBook from "./Components/Ebook/ShowBook";
 import BotpressChatbot from "./Components/Ebook/BotpressChatbot";
 
-// 🔥 CHECKOUT FLOW (Stripe)
+// Checkout
 import CheckoutDetails from "./Components/Pages/CheckoutDetails";
 import CheckoutReferral from "./Components/Pages/CheckoutReferral";
 import CheckoutPayment from "./Components/Pages/CheckoutPayment";
-
 import FintechCourseDetails from "./Components/Pages/FintechCourseDetails";
 
-
 function App() {
+
+  const { user, isLoaded } = useUser();
+
+  // 🔥 GLOBAL AUTO SYNC ON LOGIN
+  useEffect(() => {
+
+    if (!isLoaded || !user) return;
+
+    const syncUser = async () => {
+      try {
+        await axios.post(
+          "http://localhost:3000/api/user/sync",
+          {
+            clerkId: user.id,
+            fullName: user.fullName,
+            email: user.primaryEmailAddress?.emailAddress,
+            profileImage: user.imageUrl,
+          }
+        );
+
+        console.log("✅ User synced to MongoDB");
+
+      } catch (err) {
+        console.error("❌ Sync failed:", err);
+      }
+    };
+
+    syncUser();
+
+  }, [user, isLoaded]);
+
   return (
     <>
       <Routes>
-        {/* MAIN PAGES */}
+
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About1 />} />
         <Route path="/courses" element={<Courses1 />} />
@@ -58,17 +90,13 @@ function App() {
         <Route path="/contact" element={<Contact1 />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* AUTH / PROFILE */}
         <Route path="/register" element={<SignUp />} />
         <Route path="/profile" element={<Profile />} />
 
-        {/* TESTS & QUIZZES */}
-        <Route path= "/quiz/fintech" element={<FintechQuiz />}/>
+        <Route path="/quiz/fintech" element={<FintechQuiz />} />
 
-        {/* COURSES */}
         <Route path="/courses/java" element={<Javaprog />} />
         <Route path="/courses/dsa" element={<Dsa />} />
-
         <Route path="/courses/mern" element={<Mern />} />
         <Route path="/courses/mern/nodejs" element={<Nodejs />} />
         <Route path="/courses/mern/express" element={<Express />} />
@@ -85,29 +113,24 @@ function App() {
         <Route path="/courses/fullstack/html" element={<Html />} />
         <Route path="/courses/fullstack/css" element={<Css />} />
 
-        {/* PROGRAMMING */}
         <Route path="/cources/programming" element={<Programming />} />
         <Route path="/cources/programming/java" element={<Javaprog />} />
         <Route path="/cources/programming/advJava" element={<Advjava />} />
         <Route path="/cources/programming/javascript" element={<Javascript />} />
 
-        {/* LIBRARY & FEEDBACK */}
         <Route path="/library" element={<ShowBook />} />
         <Route path="/feedback" element={<FeedbackAll />} />
 
         <Route path="/courses/:slug" element={<FintechCourseDetails />} />
 
-
-        {/* 💳 STRIPE CHECKOUT FLOW */}
         <Route path="/checkout/details" element={<CheckoutDetails />} />
         <Route path="/checkout/referral" element={<CheckoutReferral />} />
         <Route path="/checkout/payment" element={<CheckoutPayment />} />
 
-        {/* ERROR */}
         <Route path="*" element={<ErrorPage />} />
+
       </Routes>
 
-      {/* GLOBAL CHATBOT */}
       <BotpressChatbot />
     </>
   );
