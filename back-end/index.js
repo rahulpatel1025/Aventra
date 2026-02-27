@@ -5,11 +5,13 @@ const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 const { clerkMiddleware, requireAuth } = require("@clerk/express");
+const { clerkClient } = require("@clerk/clerk-sdk-node");
+
 const User = require("./models/User");
 
 const adminRoutes = require("./routes/adminRoutes");
 const courseRoutes = require("./routes/courseRoutes");
-const paymentRoutes = require("./routes/paymentRoutes"); // ✅ NEW
+const paymentRoutes = require("./routes/paymentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 
 const app = express();
@@ -43,38 +45,50 @@ app.use(
   })
 );
 
-// ================= ATTACH DB USER TO req.user =================
+// ================= AUTO SYNC USER =================
 app.use(async (req, res, next) => {
   try {
-    const clerkId = req.auth()?.userId;
+    const auth = req.auth();
 
-    if (!clerkId) return next();
+    if (!auth?.userId) {
+      return next();
+    }
 
-    const dbUser = await User.findOne({ clerkId });
+    const clerkId = auth.userId;
+
+    let dbUser = await User.findOne({ clerkId });
 
     if (!dbUser) {
-      return res.status(401).json({ error: "User not synced" });
+      // Fetch user details from Clerk securely
+      const clerkUser = await clerkClient.users.getUser(clerkId);
+
+      const userCount = await User.countDocuments();
+
+      dbUser = await User.create({
+        clerkId,
+        fullName: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
+        email: clerkUser.emailAddresses[0]?.emailAddress,
+        profileImage: clerkUser.imageUrl,
+        role: userCount === 0 ? "superadmin" : "student",
+      });
+
+      console.log("✅ Auto-synced new user:", dbUser.email);
     }
 
     req.user = dbUser;
+
     next();
   } catch (err) {
-    console.error("Auth attach error:", err);
-    res.status(500).json({ error: "Auth error" });
+    console.error("Auto-sync error:", err);
+    res.status(500).json({ error: "Authentication error" });
   }
 });
 
-// ================= ADMIN ROUTES =================
+// ================= ROUTES =================
 app.use("/admin", requireAuth(), adminRoutes);
-
-// ================= COURSE ROUTES =================
 app.use("/courses", courseRoutes);
-
-// ================= QUIZ ROUTES =================
 app.use("/quiz", quizRoutes);
-
-// ================= PAYMENT ROUTES =================
-app.use("/payments", paymentRoutes); // ✅ NEW
+app.use("/payments", paymentRoutes);
 
 // ================= MONGODB =================
 mongoose
@@ -89,7 +103,6 @@ mongoose
 const commentSchema = new mongoose.Schema(
   {
     name: { type: String, index: true },
-
     image: {
       type: String,
       default:
@@ -99,10 +112,8 @@ const commentSchema = new mongoose.Schema(
           ? "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
           : v,
     },
-
     rating: { type: Number, index: true },
     comment: String,
-
     date: {
       type: Date,
       default: Date.now,
@@ -138,34 +149,6 @@ app.get("/feedback", async (req, res) => {
 app.delete("/feedback/:id", async (req, res) => {
   await Feedback.findByIdAndDelete(req.params.id);
   res.json({ message: "Deleted" });
-});
-
-// ================= USER AUTO SYNC =================
-app.post("/api/user/sync", async (req, res) => {
-  try {
-    const { clerkId, fullName, email, profileImage } = req.body;
-
-    let user = await User.findOne({ clerkId });
-
-    if (!user) {
-      const userCount = await User.countDocuments();
-
-      user = await User.create({
-        clerkId,
-        fullName,
-        email,
-        profileImage,
-        role: userCount === 0 ? "superadmin" : "student",
-      });
-
-      console.log("✅ New user created with role:", user.role);
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error("User sync error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
 });
 
 // ================= SERVER =================
