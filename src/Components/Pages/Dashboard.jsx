@@ -2,29 +2,32 @@ import React, { useState, useEffect } from "react";
 import "../../assets/css/dashboard.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { UserButton, useUser } from "@clerk/clerk-react";
+import { UserButton, useUser, useAuth } from "@clerk/clerk-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
-
-  const progress = 68;
 
   const [dbUser, setDbUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Sync + Fetch user
   useEffect(() => {
+    // Prevent running until Clerk has finished loading
+    if (!isLoaded) return;
 
-    if (!user) return;
+    if (!isSignedIn) {
+      setLoading(false);
+      return;
+    }
 
     const syncAndGetUser = async () => {
-
       try {
-
+        const token = await getToken();
+        
         const res = await axios.post(
           "http://localhost:3000/api/user/sync",
           {
@@ -33,41 +36,39 @@ export default function Dashboard() {
             email: user.primaryEmailAddress?.emailAddress,
             profileImage: user.imageUrl,
           },
-          { withCredentials: true }
+          { 
+            headers: { Authorization: `Bearer ${token}` }
+          }
         );
 
-        setDbUser(res.data);
+        // Your backend returns { message: "...", user: { ... } }
+        setDbUser(res.data.user || res.data);
 
       } catch (err) {
-
-        console.error("Failed:", err);
-
+        console.error("Failed to fetch user data:", err);
       } finally {
-
         setLoading(false);
-
       }
     };
 
     syncAndGetUser();
+  }, [user, isLoaded, isSignedIn, getToken]);
 
-  }, [user]);
-
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>;
-  if (!dbUser) return <div style={{ padding: 40 }}>Error loading user</div>;
-
+  if (!isLoaded || loading) return <div style={{ padding: 40, textAlign: "center", fontSize: "18px" }}>Loading Dashboard...</div>;
+  if (!isSignedIn) return <div style={{ padding: 40, textAlign: "center", color: "red" }}>Please log in to access the dashboard.</div>;
+  if (!dbUser) return <div style={{ padding: 40, textAlign: "center", color: "red" }}>Error loading user profile. Please refresh the page.</div>;
 
   // ✅ Check if user purchased at least one course
-  const hasPurchasedCourse =
-    dbUser.purchasedCourses && dbUser.purchasedCourses.length > 0;
+  const hasPurchasedCourse = dbUser.purchasedCourses && dbUser.purchasedCourses.length > 0;
 
+  // ✅ Calculate real quiz progress based on the 24 questions we added
+  const totalQuizQuestions = 24;
+  const progress = dbUser.quizScore ? Math.round((dbUser.quizScore / totalQuizQuestions) * 100) : 0;
 
   return (
     <div className="dashboard-layout">
-
       {/* SIDEBAR */}
       <aside className="dashboard-sidebar">
-
         <div className="profile-card">
           <UserButton afterSignOutUrl="/" />
           <h4>{dbUser.fullName}</h4>
@@ -75,13 +76,8 @@ export default function Dashboard() {
         </div>
 
         <nav className="sidebar-menu">
-
           <a className="active">🏠 Dashboard</a>
-
-          <a onClick={() => navigate("/my-courses")}>
-            📚 My Courses
-          </a>
-
+          <a onClick={() => navigate("/my-courses")}>📚 My Courses</a>
           <a>📊 Progress</a>
 
           {/* ✅ Show quiz only if purchased */}
@@ -92,20 +88,14 @@ export default function Dashboard() {
           )}
 
           <a>🎓 Certificates</a>
-
           <a>⚙ Settings</a>
-
         </nav>
-
       </aside>
-
 
       {/* MAIN */}
       <main className="dashboard-main">
-
         {/* HEADER */}
         <div className="dashboard-header">
-
           <h1>Student Dashboard</h1>
 
           <button
@@ -117,78 +107,72 @@ export default function Dashboard() {
           >
             <span className="toggle-icon"></span>
           </button>
-
         </div>
-
 
         {/* STATS */}
         <div className="stats-grid">
-
           <div className="stat-card animated">
             <h4>Courses</h4>
-            <span>{dbUser.coursesEnrolled}</span>
+            <span>{dbUser.coursesEnrolled || 0}</span>
           </div>
 
           <div className="stat-card animated">
             <h4>Completed</h4>
-            <span>{dbUser.completedCourses}</span>
+            <span>{dbUser.completedCourses || 0}</span>
           </div>
 
           <div className="stat-card animated">
-            <h4>Internship</h4>
-            <span>{dbUser.internshipProgress}%</span>
+            <h4>Quiz Score</h4>
+            <span style={{ color: dbUser.quizPassed ? "#10b981" : "inherit" }}>
+              {dbUser.quizScore || 0} / {totalQuizQuestions}
+            </span>
           </div>
 
           <div className="stat-card animated">
-            <h4>Certificates</h4>
-            <span>{dbUser.certificates}</span>
+            <h4>Quiz Status</h4>
+            <span style={{ fontSize: "18px", color: dbUser.quizPassed ? "#10b981" : "#ef4444" }}>
+              {dbUser.quizPassed ? "PASSED ✅" : "PENDING"}
+            </span>
           </div>
-
         </div>
-
 
         {/* GRID */}
         <div className="dashboard-grid">
-
           {/* PROGRESS */}
           <div className="glass-card animated center">
+            <h3>FinTech Quiz Progress</h3>
 
-            <h3>Overall Progress</h3>
-
-            <div className="circle-wrap">
-
+            <div className="circle-wrap" style={{ width: "150px", margin: "20px auto" }}>
               <CircularProgressbar
                 value={progress}
                 text={`${progress}%`}
                 styles={buildStyles({
-                  pathColor: "#38bdf8",
-                  textColor: "#38bdf8",
-                  trailColor: "rgba(255,255,255,0.1)",
+                  pathColor: dbUser.quizPassed ? "#10b981" : "#38bdf8",
+                  textColor: dbUser.quizPassed ? "#10b981" : "#38bdf8",
+                  trailColor: "rgba(0,0,0,0.1)",
                 })}
               />
-
             </div>
-
+            
+            <p style={{ marginTop: "10px", color: "#64748b" }}>
+              Attempts Used: {dbUser.quizAttempts || 0} / 3
+            </p>
           </div>
-
 
           {/* ANNOUNCEMENTS */}
           <div className="glass-card animated">
-
             <h3>📢 Announcements</h3>
-
-            <ul>
+            <ul style={{ lineHeight: "2" }}>
               <li>🚀 Internship onboarding starts next week.</li>
               <li>📘 New React course launching soon.</li>
               <li>🎯 Resume workshop on Friday.</li>
+              {dbUser.quizPassed && (
+                <li style={{ color: "#10b981", fontWeight: "bold" }}>🏆 Your FinTech Certificate is ready to download!</li>
+              )}
             </ul>
-
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }
