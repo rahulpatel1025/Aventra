@@ -1,6 +1,6 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react"; // ✅ Added useAuth
 import { useEffect } from "react";
 import axios from "axios";
 
@@ -47,40 +47,48 @@ import CheckoutPayment from "./Components/Pages/CheckoutPayment";
 import FintechCourseDetails from "./Components/Pages/FintechCourseDetails";
 
 function App() {
+  // ✅ Extract isSignedIn as well to ensure they are fully logged in
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { getToken } = useAuth(); // ✅ Get the token function from useAuth
 
-  const { user, isLoaded } = useUser();
-
-  // 🔥 GLOBAL AUTO-SYNC USING BACKEND MIDDLEWARE
+  // 🔥 GLOBAL AUTO-SYNC USING BACKEND
   useEffect(() => {
-
-    if (!isLoaded || !user) return;
+    // Only run if Clerk is loaded and the user is actually signed in
+    if (!isLoaded || !isSignedIn || !user) return;
 
     const triggerAutoSync = async () => {
       try {
+        const token = await getToken(); // ✅ Correct token extraction
 
-        const token = await user.getToken();
-
-        await axios.get("http://localhost:3000/api/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        // ✅ Use POST and hit the sync route we built in the backend
+        await axios.post(
+          "http://localhost:3000/api/user/sync",
+          {
+            clerkId: user.id,
+            fullName: user.fullName,
+            // Fallback for Apple ID "Hide My Email" users
+            email: user.primaryEmailAddress?.emailAddress || "hidden-apple-email@apple.com",
+            profileImage: user.imageUrl,
           },
-        });
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-        console.log("✅ User auto-synced via /api/me");
-
+        console.log("✅ User auto-synced successfully");
       } catch (err) {
         console.error("❌ Auto-sync failed:", err);
       }
     };
 
     triggerAutoSync();
-
-  }, [user, isLoaded]);
+  }, [user, isLoaded, isSignedIn, getToken]);
 
   return (
     <>
       <Routes>
-
         {/* MAIN PAGES */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About1 />} />
@@ -135,7 +143,6 @@ function App() {
 
         {/* ERROR */}
         <Route path="*" element={<ErrorPage />} />
-
       </Routes>
 
       {/* GLOBAL CHATBOT */}
