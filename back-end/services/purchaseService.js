@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Course = require("../models/Course");
 
 async function completePurchase({
-  userId,
+  userId, // Note: This is the Clerk ID (e.g., user_2...)
   courseId,
   amount,
   paymentProvider,
@@ -15,9 +15,15 @@ async function completePurchase({
     throw new Error("Course not found");
   }
 
-  // 2️⃣ Prevent duplicate purchase
+  // 2️⃣ Verify user exists in DB using clerkId
+  const user = await User.findOne({ clerkId: userId });
+  if (!user) {
+    throw new Error("User not found in database");
+  }
+
+  // 3️⃣ Prevent duplicate purchase
   const existing = await Purchase.findOne({
-    userId,
+    userId, // Storing the Clerk ID
     courseId,
   });
 
@@ -25,7 +31,7 @@ async function completePurchase({
     throw new Error("Course already purchased");
   }
 
-  // 3️⃣ Create purchase record
+  // 4️⃣ Create purchase record
   const purchase = await Purchase.create({
     userId,
     courseId,
@@ -35,13 +41,18 @@ async function completePurchase({
     status: "completed",
   });
 
-  // 4️⃣ Attach course to user
-  await User.findByIdAndUpdate(userId, {
-    $addToSet: { purchasedCourses: courseId },
-  });
+  // 5️⃣ Attach course & unlock dashboard features for the user
+  await User.findOneAndUpdate(
+    { clerkId: userId }, // Find by Clerk ID, NOT Mongo _id
+    {
+      $addToSet: { purchasedCourses: courseId }, // Adds course (prevents duplicates)
+      $set: { hasPurchased: true },              // Unlocks the FinTech Quiz!
+      $inc: { coursesEnrolled: 1 }               // Updates the stats counter
+    },
+    { new: true }
+  );
 
   return purchase;
 }
 
 module.exports = { completePurchase };
-    

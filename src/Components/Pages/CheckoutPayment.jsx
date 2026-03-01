@@ -1,7 +1,8 @@
-import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import "../../assets/css/checkout.css";
 import axios from "axios";
+import { useAuth } from "@clerk/clerk-react"; 
 
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -13,7 +14,7 @@ import {
 
 /* 🔑 Stripe TEST publishable key */
 const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder" 
 );
 
 /* ================= Payment Form ================= */
@@ -21,26 +22,56 @@ function StripePaymentForm({ amount, courseId }) {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
+  const { getToken } = useAuth(); 
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) return;
 
-    try {
-      // ✅ Simulated Stripe success (test mode)
-      alert("✅ Payment Successful (Test Mode)");
+    setIsProcessing(true);
 
-      // 🔥 Call backend purchase route
-      await axios.post(
-        `http://localhost:3000/courses/purchase/${courseId}`,
-        {},
-        { withCredentials: true }
+    try {
+      // 1️⃣ Generate a secure Payment Method ID from Stripe
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        type: "card",
+        card: elements.getElement(CardElement),
+      });
+
+      if (error) {
+        alert(error.message);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2️⃣ Get the secure Clerk Token
+      const token = await getToken();
+
+      // 3️⃣ Send the payload dynamically
+      const response = await axios.post(
+        "http://localhost:3000/payments/verify",
+        {
+          courseId: courseId, // 🔥 Dynamically fetching the course ID!
+          amount: amount,
+          paymentProvider: "stripe",
+          paymentId: paymentMethod.id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
+      // 4️⃣ Success! Redirect to the newly unlocked dashboard
+      alert("✅ Payment Successful! Dashboard Unlocked.");
       navigate("/dashboard");
+
     } catch (err) {
       console.error("Purchase error:", err);
-      alert("Something went wrong while updating purchase.");
+      alert(err.response?.data?.message || "Something went wrong while updating purchase.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -48,7 +79,7 @@ function StripePaymentForm({ amount, courseId }) {
     <form onSubmit={handleSubmit} className="checkout-form">
       <label>Card Details</label>
 
-      <div className="card-box">
+      <div className="card-box" style={{ padding: "12px", border: "1px solid #ccc", borderRadius: "6px", marginBottom: "20px", background: "#fff" }}>
         <CardElement
           options={{
             style: {
@@ -67,11 +98,16 @@ function StripePaymentForm({ amount, courseId }) {
         <strong>₹{amount}</strong>
       </div>
 
-      <button className="checkout-btn" type="submit">
-        Pay ₹{amount}
+      <button 
+        className="checkout-btn" 
+        type="submit" 
+        disabled={!stripe || isProcessing}
+        style={{ opacity: isProcessing ? 0.7 : 1 }}
+      >
+        {isProcessing ? "Processing..." : `Pay ₹${amount}`}
       </button>
 
-      <p style={{ marginTop: 14, fontSize: 13, opacity: 0.7 }}>
+      <p style={{ marginTop: 14, fontSize: 13, opacity: 0.7, textAlign: "center" }}>
         Test mode • No real money will be charged
       </p>
     </form>
@@ -81,11 +117,11 @@ function StripePaymentForm({ amount, courseId }) {
 /* ================= Page ================= */
 export default function CheckoutPayment() {
   const location = useLocation();
-  const navigate = useNavigate();
 
-  if (!location.state) {
-    navigate("/checkout/details");
-    return null;
+  // 🔥 STRICT CHECK: If the previous page forgot to pass the courseId, redirect to safety!
+  if (!location.state || !location.state.courseId) {
+    console.error("Missing courseId in state. Redirecting to courses.");
+    return <Navigate to="/courses" replace />;
   }
 
   const { pricing, courseId } = location.state;

@@ -5,7 +5,9 @@ const { requireAuth } = require("@clerk/express");
 
 router.post("/verify", requireAuth(), async (req, res) => {
   try {
-    const { userId, courseId, amount, paymentProvider, paymentId } = req.body;
+    // 🔥 SECURITY FIX: Get userId directly from Clerk's verified token
+    const { userId } = req.auth(); 
+    const { courseId, amount, paymentProvider, paymentId } = req.body;
 
     if (!userId || !courseId || !paymentProvider || !paymentId) {
       return res.status(400).json({ message: "Missing payment data" });
@@ -24,6 +26,7 @@ router.post("/verify", requireAuth(), async (req, res) => {
       purchase,
     });
   } catch (err) {
+    console.error("Payment Verification Error:", err);
     res.status(500).json({ message: err.message });
   }
 });

@@ -42,6 +42,8 @@ body.dark-mode .quiz-wrapper {
   padding: 0 20px;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--text-main);
+  /* Prevents horizontal scroll jittering that can crash touchpads */
+  overflow-x: hidden; 
 }
 
 /* Shared Card Styles */
@@ -54,8 +56,12 @@ body.dark-mode .quiz-wrapper {
   border-radius: 12px;
   padding: 32px;
   margin-bottom: 24px;
-  /* Minimal shadow for performance */
   box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+  
+  /* 🔥 THE FIX: GPU HARDWARE ACCELERATION & CONTAINMENT 🔥 */
+  transform: translateZ(0);           /* Forces the element onto the GPU */
+  backface-visibility: hidden;        /* Prevents rendering glitches/flickers */
+  contain: content;                   /* Tells Chrome the contents won't affect outside layout, skipping massive recalculations */
 }
 
 /* Header Card Specifics */

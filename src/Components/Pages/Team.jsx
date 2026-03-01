@@ -1,5 +1,5 @@
 import React from "react";
-import "../../assets/css/team-slider.css";   // 👈 create this file
+import "../../assets/css/team-slider.css";
 
 export default function Team() {
   return (
@@ -8,7 +8,7 @@ export default function Team() {
         <div className="container">
           <div className="text-center wow fadeInUp" data-wow-delay="0.1s">
             <h6 className="section-title bg-white text-center text-primary px-3">
-              Instructors
+              Trusted By
             </h6>
             <h1 className="mb-5 gradient-text">Our Clients</h1>
           </div>
@@ -19,71 +19,39 @@ export default function Team() {
 
               {/* -------- CARD 1 -------- */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-1.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mr. John Deo</h5>
-                  <small>MERN Stack Developer</small>
-                </div>
+                <img className="img-fluid" src="/img/client1.jpg" alt="Client" />
               </div>
 
               {/* -------- CARD 2 -------- */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-2.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mrs. Shradha</h5>
-                  <small>Web Designer & Developer</small>
-                </div>
+                <img className="img-fluid" src="/img/team-2.jpg" alt="Client" />
               </div>
 
               {/* -------- CARD 3 -------- */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-3.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mr. Bobby Ficher</h5>
-                  <small>Data Structure & Algorithms</small>
-                </div>
+                <img className="img-fluid" src="/img/team-3.jpg" alt="Client" />
               </div>
 
               {/* -------- CARD 4 -------- */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-4.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mrs. Manvi</h5>
-                  <small>C and C++</small>
-                </div>
+                <img className="img-fluid" src="/img/team-4.jpg" alt="Client" />
               </div>
 
-              {/* 🔁 DUPLICATE FOR SMOOTH LOOP */}
+              {/* 🔁 DUPLICATE FOR SMOOTH LOOP (Must exactly match above) */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-1.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mr. John Deo</h5>
-                  <small>MERN Stack Developer</small>
-                </div>
+                <img className="img-fluid" src="/img/client1.jpg" alt="Client" />
               </div>
 
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-2.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mrs. Shradha</h5>
-                  <small>Web Designer & Developer</small>
-                </div>
+                <img className="img-fluid" src="/img/team-2.jpg" alt="Client" />
               </div>
 
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-3.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mr. Bobby Ficher</h5>
-                  <small>Data Structure & Algorithms</small>
-                </div>
+                <img className="img-fluid" src="/img/team-3.jpg" alt="Client" />
               </div>
 
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-4.jpg" alt="" />
-                <div className="text-center p-3">
-                  <h5>Mrs. Manvi</h5>
-                  <small>C and C++</small>
-                </div>
+                <img className="img-fluid" src="/img/team-4.jpg" alt="Client" />
               </div>
 
             </div>

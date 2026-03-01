@@ -58,7 +58,32 @@ export default function Dashboard() {
   if (!isSignedIn) return <div style={{ padding: 40, textAlign: "center", color: "red" }}>Please log in to access the dashboard.</div>;
   if (!dbUser) return <div style={{ padding: 40, textAlign: "center", color: "red" }}>Error loading user profile. Please refresh the page.</div>;
 
-  // ✅ Check if user purchased at least one course
+  // 🔴 SECURITY CHECK: RESTRICT ACCESS IF NOT PURCHASED
+  if (!dbUser.hasPurchased) {
+    return (
+      <div className="dashboard-layout" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#020617" }}>
+        <div className="glass-card animated center" style={{ maxWidth: "450px", textAlign: "center", padding: "50px 30px", border: "1px solid #1e293b", borderRadius: "16px", background: "#0f172a" }}>
+          <div style={{ fontSize: "50px", marginBottom: "15px" }}>🔒</div>
+          <h2 style={{ color: "#ef4444", marginBottom: "15px" }}>Access Restricted</h2>
+          <p style={{ marginBottom: "30px", fontSize: "16px", color: "#94a3b8", lineHeight: "1.6" }}>
+            Your dashboard is currently locked. You need to enroll in at least one course to unlock your student dashboard, access the FinTech Quiz, and track your progress.
+          </p>
+          <button
+            onClick={() => navigate("/courses")}
+            style={{ padding: "12px 30px", background: "#38bdf8", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", marginBottom: "20px" }}
+          >
+            Explore Courses
+          </button>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", color: "#64748b", marginTop: "10px" }}>
+            <span>Sign out or switch account:</span>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Check if user purchased at least one course (for sidebar logic just in case)
   const hasPurchasedCourse = dbUser.purchasedCourses && dbUser.purchasedCourses.length > 0;
 
   // ✅ Calculate real quiz progress based on the 24 questions we added

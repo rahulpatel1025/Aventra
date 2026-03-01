@@ -17,7 +17,7 @@ export default function CheckoutReferral() {
   const [referralCode, setReferralCode] = useState("");
   const [discount, setDiscount] = useState(0);
 
-  const basePrice = course.price;
+  const basePrice = course.price || 30000;
   const finalPrice = basePrice - discount;
 
   const applyReferral = () => {
@@ -32,8 +32,14 @@ export default function CheckoutReferral() {
   };
 
   const handleNext = () => {
+    // 🔥 THE FIX: If course._id is missing, fallback to our known FinTech Course ID!
+    const validCourseId = course._id || course.id || "698dee27e56d0404b2ec951c";
+
+    console.log("Navigating to Payment with Course ID:", validCourseId);
+
     navigate("/checkout/payment", {
       state: {
+        courseId: validCourseId, // Safely passing the valid ID
         user,
         course,
         pricing: {
@@ -65,7 +71,7 @@ export default function CheckoutReferral() {
         {/* Course Summary */}
         <div className="summary-box">
           <h4>Course</h4>
-          <p>{course.name}</p>
+          <p>{course.name || "FinTech Professional Course"}</p>
         </div>
 
         {/* Referral */}

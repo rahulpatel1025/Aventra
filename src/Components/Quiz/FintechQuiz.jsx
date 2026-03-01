@@ -316,7 +316,6 @@ export default function FintechQuiz() {
         return;
       }
 
-      // IMPORTANT FIX
       setAttemptsUsed(data.result.attemptsUsed);
       setPassed(data.result.passed);
 
@@ -356,12 +355,22 @@ export default function FintechQuiz() {
     }
   };
 
-  // The passing score variable is kept here in case you need it for future UI logic, 
-  // though your backend is currently deciding the true 'passed' state.
   const passingScore = Math.ceil(questions.length * 0.75);
 
   return (
-    <div className="quiz-wrapper">
+    <div 
+      className="quiz-wrapper"
+      // 🔥 ANTI-CHEATING: Block Copy, Cut, and Right-Click
+      onCopy={(e) => {
+        e.preventDefault();
+        alert("Copying questions is not allowed during the certification quiz.");
+      }}
+      onCut={(e) => e.preventDefault()}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        alert("Right-clicking is disabled during the quiz.");
+      }}
+    >
       <div className="quiz-header-card">
         <h1>FinTech Quiz</h1>
         <p className="quiz-subtitle">
