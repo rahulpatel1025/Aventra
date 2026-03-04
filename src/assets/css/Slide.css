@@ -1,16 +1,19 @@
-.carousel-inner{
-    width: 100%;
+.carousel-inner {
+  width: 100%;
 }
-.slide img{
-    width: 100%;
-    min-height: 60vh;
+
+.slide img {
+  width: 100%;
+  min-height: 60vh;
 }
-.carousel-control-prev{
-    left: -4%;
+
+.carousel-control-prev {
+  left: -4%;
 }
+
 /* Black background for slides */
 .slide-bg {
-  background: #000;
+  background: #000000;
   min-height: 90vh;
   display: flex;
   align-items: center;
