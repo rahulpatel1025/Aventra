@@ -42,7 +42,11 @@ export default function Dashboard() {
         );
 
         // Your backend returns { message: "...", user: { ... } }
-        setDbUser(res.data.user || res.data);
+        const fetchedUser = res.data.user || res.data;
+        setDbUser(fetchedUser);
+        
+        // 🔍 DEBUGGING: Check exactly what the backend returned
+        console.log("Fetched User from DB:", fetchedUser);
 
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -58,8 +62,8 @@ export default function Dashboard() {
   if (!isSignedIn) return <div style={{ padding: 40, textAlign: "center", color: "red" }}>Please log in to access the dashboard.</div>;
   if (!dbUser) return <div style={{ padding: 40, textAlign: "center", color: "red" }}>Error loading user profile. Please refresh the page.</div>;
 
-  // 🔴 SECURITY CHECK: RESTRICT ACCESS IF NOT PURCHASED
-  if (!dbUser.hasPurchased) {
+  // 🔴 SECURITY CHECK: RESTRICT ACCESS IF NOT PURCHASED AND NOT SUPERADMIN
+  if (!dbUser.hasPurchased && dbUser.role !== "superadmin") {
     return (
       <div className="dashboard-layout" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#020617" }}>
         <div className="glass-card animated center" style={{ maxWidth: "450px", textAlign: "center", padding: "50px 30px", border: "1px solid #1e293b", borderRadius: "16px", background: "#0f172a" }}>
@@ -83,8 +87,8 @@ export default function Dashboard() {
     );
   }
 
-  // ✅ Check if user purchased at least one course (for sidebar logic just in case)
-  const hasPurchasedCourse = dbUser.purchasedCourses && dbUser.purchasedCourses.length > 0;
+  // ✅ Check if user purchased at least one course or is a superadmin
+  const hasPurchasedCourse = dbUser.role === "superadmin" || (dbUser.purchasedCourses && dbUser.purchasedCourses.length > 0);
 
   // ✅ Calculate real quiz progress based on the 24 questions we added
   const totalQuizQuestions = 24;
@@ -98,6 +102,9 @@ export default function Dashboard() {
           <UserButton afterSignOutUrl="/" />
           <h4>{dbUser.fullName}</h4>
           <p>{dbUser.email}</p>
+          <span style={{ fontSize: "12px", color: "#38bdf8", textTransform: "uppercase", fontWeight: "bold" }}>
+            {dbUser.role === "superadmin" ? "Superadmin" : "Student"}
+          </span>
         </div>
 
         <nav className="sidebar-menu">
@@ -105,7 +112,7 @@ export default function Dashboard() {
           <a onClick={() => navigate("/my-courses")}>📚 My Courses</a>
           <a>📊 Progress</a>
 
-          {/* ✅ Show quiz only if purchased */}
+          {/* ✅ Show quiz only if purchased or superadmin */}
           {hasPurchasedCourse && (
             <a onClick={() => navigate("/quiz/fintech")}>
               🧠 FinTech Quiz

@@ -24,18 +24,14 @@ export default function Team() {
 
               {/* -------- CARD 2 -------- */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-2.jpg" alt="Client" />
+                <img className="img-fluid" src="/img/client2.jpg" alt="Client" />
               </div>
 
               {/* -------- CARD 3 -------- */}
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-3.jpg" alt="Client" />
+                <img className="img-fluid" src="/img/client3.jpg" alt="Client" />
               </div>
 
-              {/* -------- CARD 4 -------- */}
-              <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-4.jpg" alt="Client" />
-              </div>
 
               {/* 🔁 DUPLICATE FOR SMOOTH LOOP (Must exactly match above) */}
               <div className="team-item bg-light">
@@ -43,15 +39,11 @@ export default function Team() {
               </div>
 
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-2.jpg" alt="Client" />
+                <img className="img-fluid" src="/img/client2.jpg" alt="Client" />
               </div>
 
               <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-3.jpg" alt="Client" />
-              </div>
-
-              <div className="team-item bg-light">
-                <img className="img-fluid" src="/img/team-4.jpg" alt="Client" />
+                <img className="img-fluid" src="/img/client3.jpg" alt="Client" />
               </div>
 
             </div>
