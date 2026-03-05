@@ -1,4 +1,5 @@
 /********** Template CSS **********/
+
 :root {
     /* --primary: #06BBCC; */
     --primary: #74b1fc;
@@ -25,7 +26,6 @@
     width: 35px; */
 }
 
-
 /*** Spinner ***/
 #spinner {
     opacity: 0;
@@ -39,7 +39,6 @@
     visibility: visible;
     opacity: 1;
 }
-
 
 /*** Button ***/
 .btn {
@@ -78,7 +77,6 @@
     font-weight: normal;
     border-radius: 0px;
 }
-
 
 /*** Navbar ***/
 .navbar .dropdown-toggle::after {
@@ -154,7 +152,6 @@
     }
 }
 
-
 /*** Header carousel ***/
 @media (max-width: 768px) {
     .header-carousel .owl-carousel-item {
@@ -215,7 +212,6 @@
     color: var(--light);
 }
 
-
 /*** Section Title ***/
 .section-title {
     position: relative;
@@ -255,7 +251,6 @@
     left: 0;
 }
 
-
 /*** Service ***/
 .service-item {
     background: var(--light);
@@ -275,7 +270,6 @@
     color: var(--light) !important;
 }
 
-
 /*** Categories & Courses ***/
 .category img,
 .course-item img {
@@ -287,7 +281,6 @@
     transform: scale(1.1);
 }
 
-
 /*** Team ***/
 .team-item img {
     transition: .5s;
@@ -296,7 +289,6 @@
 .team-item:hover img {
     transform: scale(1.1);
 }
-
 
 /*** Testimonial ***/
 .testimonial-carousel::before {
@@ -369,7 +361,6 @@
     background: var(--primary);
     border-color: var(--primary);
 }
-
 
 /*** Footer ***/
 
@@ -539,6 +530,7 @@
         font-size: 16px;
     }
 }
+
 /* =========================================================
    🌙 DARK MODE THEME
    ========================================================= */
@@ -602,6 +594,7 @@ body.dark-mode .category,
 body.dark-mode .service-item {
     background: transparent;
 }
+
 /* ================= Responsive Typography ================= */
 
 h1 {
@@ -615,6 +608,7 @@ h2 {
 p {
   font-size: clamp(14px, 1.6vw, 18px);
 }
+
 /* ================= Course Cards Responsive ================= */
 
 .course-item {
@@ -626,6 +620,7 @@ p {
     max-width: 100%;
   }
 }
+
 /* ================= Image Responsive ================= */
 
 img {
@@ -633,12 +628,12 @@ img {
   height: auto;
   object-fit: cover;
 }
+
 /* ================= Touch Optimization ================= */
 
 button, .btn, a {
   min-height: 44px;
 }
-
 
 /* ================= GLOBAL BACKGROUND THEME ================= */
 
@@ -668,7 +663,6 @@ body.dark-mode {
     animation: none;
   }
 }
-
 
 @keyframes heroGradientMove {
   0% { background-position: 0% 50%; }
@@ -753,6 +747,7 @@ body.dark-mode .carousel-indicators button {
 body.dark-mode .carousel-indicators .active {
   background-color: #60a5fa;
 }
+
 /* ================= HERO DESCRIPTION ================= */
 
 .hero-description {
@@ -852,6 +847,7 @@ body.dark-mode .carousel-indicators .active {
     padding: 8px 14px;
   }
 }
+
 /* ===============================
    🎯 What You Get Section Styling
 ================================ */
@@ -934,7 +930,6 @@ body.dark-mode .what-you-get-card .highlight {
 
 /* =========================================================
    🖤 PURE BLACK & WHITE DARK THEME OVERRIDES
-   Place this at the END of style.css
    ========================================================= */
 
 /* ---------- Global ---------- */
@@ -942,7 +937,7 @@ body.dark-mode .what-you-get-card .highlight {
 body.dark-mode {
   background: #050505 !important;
   color: #ffffff !important;
-  animation: none !important;   /* remove animated blue gradient */
+  animation: none !important;  /* remove animated blue gradient */
 }
 
 body.dark-mode * {
@@ -1002,32 +997,12 @@ body.dark-mode .primary-btn:hover {
   box-shadow: 0 0 20px rgba(255,255,255,0.4);
 }
 
-/* ---------- Hero Title (remove blue gradient) ---------- */
-
-body.dark-mode .hero-title,
-body.dark-mode .gradient-text {
-  background: none !important;
-  -webkit-text-fill-color: #ffffff !important;
-  text-shadow: 0 0 18px rgba(255,255,255,0.15);
-  animation: none !important;
-}
-
 /* ---------- Hero Description ---------- */
 
 body.dark-mode .hero-description {
   background: rgba(255,255,255,0.04) !important;
   color: #e5e7eb !important;
   box-shadow: 0 8px 18px rgba(0,0,0,0.6);
-}
-
-/* ---------- Hero Tagline ---------- */
-
-body.dark-mode .hero-tagline {
-  background: rgba(255,255,255,0.08) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255,255,255,0.15);
-  box-shadow: 0 0 12px rgba(255,255,255,0.12);
-  animation: none !important;
 }
 
 /* ---------- Cards (Services, Sections, Glass) ---------- */
@@ -1083,12 +1058,6 @@ body.dark-mode .footer a {
   color: #d1d5db !important;
 }
 
-/* ---------- Remove All Blue Glows ---------- */
-
-body.dark-mode * {
-  --primary: #ffffff;
-  --dark: #000000;
-}
 
 /* ================= Footer Logo Branding ================= */
 
