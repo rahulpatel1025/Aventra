@@ -9,13 +9,11 @@ export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 Fetch published courses from backend
+  // Fetch published courses from backend
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:3000/courses"
-        );
+        const res = await axios.get("http://localhost:3000/courses");
         setCourses(res.data);
       } catch (err) {
         console.error("❌ Failed to fetch courses:", err);
@@ -35,11 +33,12 @@ export default function Courses() {
       <div className="container-xxl py-5 category">
         <div className="container">
 
-          <div className="text-center wow fadeInUp">
-            <h6 className="section-title bg-white text-center text-primary px-3">
-              Categories
-            </h6>
-            <h1 className="mb-5 gradient-text">
+          <div className="text-center wow fadeInUp" style={{ marginBottom: "60px" }}>
+             {/* Modern Pill Badge */}
+            <span className="hero-tagline" style={{ display: "inline-block", marginBottom: "16px" }}>
+               Categories
+            </span>
+            <h1 className="hero-title" style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)"}}>
               Courses Categories
             </h1>
           </div>
@@ -48,19 +47,19 @@ export default function Courses() {
 
             {/* LEFT CONTENT */}
             <div className="col-lg-7">
-              <div className="what-you-get-card">
-                <h2>What You Get</h2>
+              <div className="what-you-get-card bento-card">
+                <h2 style={{ fontSize: "28px", letterSpacing: "-0.03em" }}>What You Get</h2>
 
-                <h4>
-                  Why students choose <span>Aventra Tech Solutions</span>
+                <h4 style={{ fontWeight: 500, color: "#475569", marginBottom: "24px" }}>
+                  Why students choose <span style={{ color: "#0f172a", fontWeight: 700 }}>Aventra Tech Solutions</span>
                 </h4>
 
-                <p className="highlight">
-                  ✅ You’ll get <strong>100% paid internship after completion</strong> —
+                <p className="highlight" style={{ background: "rgba(15, 23, 42, 0.04)", borderLeftColor: "#0f172a", color: "#0f172a" }}>
+                   You’ll get <strong>100% paid internship after completion</strong> —
                   else your money back.
                 </p>
 
-                <ul>
+                <ul style={{ color: "#475569" }}>
                   <li>Industry-aligned curriculum built for real-world delivery.</li>
                   <li>Hands-on projects following production-grade standards.</li>
                   <li>Mentorship from experienced engineers and architects.</li>
@@ -74,17 +73,21 @@ export default function Courses() {
             {/* RIGHT IMAGE */}
             <div className="col-lg-5">
               <Link
-                className="d-block rounded overflow-hidden"
+                className="d-block rounded-4 overflow-hidden"
                 to="/courses"
+                style={{ border: "1px solid rgba(0,0,0,0.08)" }}
               >
                 <img
-                  className="img-fluid w-100"
+                  className="img-fluid w-100 transition-scale"
                   src="/img/cat-4.jpg"
                   alt="Courses Preview"
                   style={{
-                    maxHeight: "420px",
+                    maxHeight: "480px",
                     objectFit: "cover",
+                    transition: "transform 0.5s ease"
                   }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 />
               </Link>
             </div>
@@ -97,37 +100,39 @@ export default function Courses() {
       <div className="container-xxl py-5">
         <div className="container">
 
-          <div className="text-center wow fadeInUp">
-            <h6 className="section-title bg-white text-center text-primary px-3">
-              Programs
-            </h6>
-            <h1 className="mb-5 gradient-text">
+          <div className="text-center wow fadeInUp" style={{ marginBottom: "60px" }}>
+            <span className="hero-tagline" style={{ display: "inline-block", marginBottom: "16px" }}>
+               Programs
+            </span>
+            <h1 className="hero-title" style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)"}}>
               Delivery-Focused Professional Programs
             </h1>
           </div>
 
-          {/* 🔥 Loading */}
+          {/* Loading */}
           {loading && (
-            <p style={{ textAlign: "center" }}>
+            <p style={{ textAlign: "center", color: "#475569" }}>
               ⏳ Loading courses...
             </p>
           )}
 
-          {/* ❌ No courses */}
+          {/* No courses */}
           {!loading && courses.length === 0 && (
-            <p style={{ textAlign: "center" }}>
+            <p style={{ textAlign: "center", color: "#475569" }}>
               No courses available yet.
             </p>
           )}
 
-          {/* ✅ Dynamic Courses */}
-          {!loading &&
-            courses.map((course) => (
-              <FinTechCourse
-                key={course._id}
-                course={course}
-              />
-            ))}
+          {/* Dynamic Courses */}
+          <div style={{ display: "flex", justifyContent: "center", gap: "30px", flexWrap: "wrap" }}>
+            {!loading &&
+              courses.map((course) => (
+                <FinTechCourse
+                  key={course._id}
+                  course={course}
+                />
+              ))}
+          </div>
 
         </div>
       </div>
@@ -135,11 +140,11 @@ export default function Courses() {
       {/* 🚀 Coming Soon Section */}
       <div className="container-xxl py-5">
         <div className="container">
-          <div className="coming-soon-card">
-            <h2>
+          <div className="coming-soon-card bento-card" style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+            <h2 style={{ letterSpacing: "-0.03em" }}>
               <span>🚀 Many more courses coming soon!</span>
             </h2>
-            <p>
+            <p style={{ color: "#475569" }}>
               We're continuously building high-quality courses to help you level up
               your skills. Stay tuned for exciting new content, expert-led programs,
               and career-focused learning paths.

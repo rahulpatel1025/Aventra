@@ -3,54 +3,56 @@ import React from "react";
 export default function Footer() {
   return (
     <>
+      {/* Removed bg-dark and text-light, relying on global light mode styles */}
       <div
-        className="container-fluid bg-dark text-light footer pt-5 mt-5 wow fadeIn"
+        className="container-fluid footer pt-5 mt-5 wow fadeIn border-top"
         data-wow-delay="0.1s"
+        style={{ backgroundColor: "#ffffff", borderTopColor: "rgba(0,0,0,0.08) !important" }}
       >
         <div className="container py-5">
           <div className="row g-5 justify-content-center">
 
             {/* ✅ Quick Links */}
             <div className="col-lg-4 col-md-6">
-              <h4 className="text-white mb-3">Quick Link</h4>
+              <h4 className="mb-4" style={{ fontWeight: 700, letterSpacing: "-0.02em", color: "#0f172a" }}>Quick Links</h4>
 
-              <a className="btn btn-link" href="#">About Us</a>
-              <a className="btn btn-link" href="#">Contact Us</a>
-              <a className="btn btn-link" href="#">Privacy Policy</a>
-              <a className="btn btn-link" href="#">Terms &amp; Condition</a>
-              <a className="btn btn-link" href="#">Refund policy</a>
+              <a className="btn btn-link footer-link" href="#">About Us</a>
+              <a className="btn btn-link footer-link" href="#">Contact Us</a>
+              <a className="btn btn-link footer-link" href="#">Privacy Policy</a>
+              <a className="btn btn-link footer-link" href="#">Terms &amp; Condition</a>
+              <a className="btn btn-link footer-link" href="#">Refund policy</a>
             </div>
 
             {/* ✅ Contact */}
             <div className="col-lg-4 col-md-6">
-              <h4 className="text-white mb-3">Contact</h4>
+              <h4 className="mb-4" style={{ fontWeight: 700, letterSpacing: "-0.02em", color: "#0f172a" }}>Contact</h4>
 
-              <p className="mb-2">
-                <i className="fa fa-map-marker-alt me-3" />
+              <p className="mb-3" style={{ color: "#475569" }}>
+                <i className="fa fa-map-marker-alt me-3" style={{ color: "#0f172a" }} />
                 Mumbai, Maharashtra, India
               </p>
 
-              <p className="mb-2">
-                <i className="fa fa-phone-alt me-3" />
+              <p className="mb-3" style={{ color: "#475569" }}>
+                <i className="fa fa-phone-alt me-3" style={{ color: "#0f172a" }} />
                 +091 834-766-9000
               </p>
 
-              <p className="mb-2">
-                <i className="fa fa-envelope me-3" />
-                aventratech1@gmail.com
+              <p className="mb-3" style={{ color: "#475569" }}>
+                <i className="fa fa-envelope me-3" style={{ color: "#0f172a" }} />
+                aventra@gmail.com
               </p>
 
-              <div className="d-flex pt-2">
+              <div className="d-flex pt-3 gap-2">
                 <a
-    className="btn btn-outline-light btn-social"
-    href="https://www.instagram.com/o_orahul_p/"
-    target="_blank"
-    rel="noreferrer"
-  >
-    <i className="fab fa-instagram" />
-  </a>
+                  className="btn btn-social minimal-social"
+                  href="https://www.instagram.com/o_orahul_p/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <i className="fab fa-instagram" />
+                </a>
                 <a
-                  className="btn btn-outline-light btn-social"
+                  className="btn btn-social minimal-social"
                   href="https://www.linkedin.com/in/basant-kumar-bharati"
                   target="_blank"
                   rel="noreferrer"
@@ -64,23 +66,24 @@ export default function Footer() {
         </div>
 
         {/* ✅ Bottom Credit Section */}
-        <div className="container">
-          <div className="copyright">
+        <div className="container border-top" style={{ borderColor: "rgba(0,0,0,0.08) !important" }}>
+          <div className="copyright py-4">
             <div className="row align-items-center">
 
               {/* LEFT — Aventra */}
-              <div className="col-md-6 text-center text-md-start mb-2 mb-md-0">
+              <div className="col-md-6 text-center text-md-start mb-3 mb-md-0" style={{ color: "#64748b", fontSize: "14px" }}>
                 © 2026 Aventra Tech Solutions. All Rights Reserved.
               </div>
 
               {/* RIGHT — Powered by + Logo */}
               <div className="col-md-6 text-center text-md-end footer-branding">
-                <span className="powered-text">
+                <span className="powered-text" style={{ color: "#64748b", fontSize: "14px" }}>
                   Powered by{" "}
                   <a
                     href="https://patelbuilds.dev"
                     target="_blank"
                     rel="noreferrer"
+                    style={{ color: "#0f172a", fontWeight: 600, textDecoration: "none" }}
                   >
                     patelbuilds.dev
                   </a>
@@ -90,13 +93,15 @@ export default function Footer() {
                 <img
                   src="/img/logo_dark.png"
                   alt="Rahul Logo Dark"
-                  className="footer-logo logo-dark"
+                  className="footer-logo logo-dark ms-2"
+                  style={{ height: "24px" }}
                 />
 
                 <img
                   src="/img/logo.png"
                   alt="Rahul Logo Light"
-                  className="footer-logo logo-light"
+                  className="footer-logo logo-light ms-2"
+                  style={{ height: "24px", filter: "invert(1)" }} 
                 />
               </div>
 

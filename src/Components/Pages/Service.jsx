@@ -28,8 +28,8 @@ export default function Service() {
       title: "QA, Testing & Release Readiness",
     },
     {
-      icon: "fa-tools",   // ✅ NEW
-      title: "Ongoing Maintenance & Technical Support", // ✅ NEW
+      icon: "fa-tools",
+      title: "Ongoing Maintenance & Technical Support",
     },
   ];
 
@@ -37,14 +37,16 @@ export default function Service() {
     <section className="service-section">
       <div className="service-container">
         {services.map((service, index) => (
-          <div className="service-card" key={index}>
-            <i className={`fa fa-3x ${service.icon}`} />
+          <div className="service-card bento-card" key={index}>
+            <div className="icon-wrapper">
+              <i className={`fa ${service.icon}`} />
+            </div>
             <h5>{service.title}</h5>
           </div>
         ))}
 
-        {/* ✅ Info Text Panel */}
-        <div className="service-info">
+        {/* Info Text Panel */}
+        <div className="service-info bento-card info-card">
           <p>
             We seamlessly integrate with your internal teams and follow your
             delivery standards, timelines, and documentation practices.

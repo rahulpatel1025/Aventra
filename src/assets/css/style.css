@@ -1,5 +1,7 @@
 /********** Template CSS **********/
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
     /* --primary: #06BBCC; */
     --primary: #74b1fc;
@@ -42,7 +44,7 @@
 
 /*** Button ***/
 .btn {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Inter', 'Nunito', sans-serif;
     font-weight: 600;
     transition: .5s;
 }
@@ -531,70 +533,6 @@
     }
 }
 
-/* =========================================================
-   🌙 DARK MODE THEME
-   ========================================================= */
-
-body.dark-mode {
-    background-color: #020617;
-    color: #e5e7eb;
-    transition: background 0.3s ease, color 0.3s ease;
-}
-
-/* Navbar */
-body.dark-mode .modern-navbar {
-    background: #020617;
-}
-
-body.dark-mode .menu {
-    background: rgba(30, 41, 59, 0.9);
-}
-
-body.dark-mode .menu a {
-    color: #e5e7eb;
-}
-
-body.dark-mode .logo {
-    color: #f8fafc;
-}
-
-/* Buttons */
-body.dark-mode .primary-btn {
-    background: #020617;
-    color: #e5e7eb;
-    border-color: #334155;
-}
-
-body.dark-mode .primary-btn:hover {
-    background: #334155;
-}
-
-/* Coming Soon Card */
-body.dark-mode .coming-soon-card {
-    background: linear-gradient(
-        135deg,
-        rgba(30, 41, 59, 0.95),
-        rgba(2, 6, 23, 0.95)
-    );
-    color: #f1f5f9;
-}
-
-body.dark-mode .coming-soon-card p {
-    color: #cbd5f5;
-}
-
-/* Footer */
-body.dark-mode .footer {
-    background: #020617;
-}
-
-/* Sections */
-body.dark-mode .container,
-body.dark-mode .category,
-body.dark-mode .service-item {
-    background: transparent;
-}
-
 /* ================= Responsive Typography ================= */
 
 h1 {
@@ -644,32 +582,6 @@ body {
   transition: background 0.5s ease, color 0.5s ease;
 }
 
-/* Dark mode gradient */
-body.dark-mode {
-  background: radial-gradient(
-    circle at top,
-    #3b82f6 0%,
-    #1e1b4b 35%,
-    #020617 80%
-  );
-  background-size: 200% 200%;
-  animation: backgroundFlow 14s ease infinite;
-  color: #e5e7eb;
-}
-
-/* Reduce motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  body.dark-mode {
-    animation: none;
-  }
-}
-
-@keyframes heroGradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 /* ================= HERO GRADIENT TEXT ================= */
 
 .hero-title {
@@ -710,50 +622,12 @@ body.dark-mode {
   animation: heroGradientMove 6s ease infinite;
 }
 
-/* ================= Testimonial Dark Mode Fix ================= */
-
-body.dark-mode .testimonial-text {
-  background: linear-gradient(
-    135deg,
-    rgba(30, 41, 59, 0.95),
-    rgba(2, 6, 23, 0.95)
-  ) !important;
-
-  color: #e5e7eb !important;
-  border-radius: 16px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-}
-
-/* Paragraph text inside testimonial */
-body.dark-mode .testimonial-text p {
-  color: #e5e7eb !important;
-}
-
-/* Student name */
-body.dark-mode .carousel-item h5 {
-  color: #f8fafc;
-}
-
-/* Student role */
-body.dark-mode .carousel-item p {
-  color: #cbd5f5;
-}
-
-/* Carousel dots */
-body.dark-mode .carousel-indicators button {
-  background-color: rgba(255, 255, 255, 0.4);
-}
-
-body.dark-mode .carousel-indicators .active {
-  background-color: #60a5fa;
-}
-
 /* ================= HERO DESCRIPTION ================= */
 
 .hero-description {
   max-width: 520px;
   margin-top: 16px;
-  margin-bottom: 20px; /* ⬅️ reduced to stabilize spacing */
+  margin-bottom: 20px; 
 
   font-size: 1.05rem;
   line-height: 1.65;
@@ -795,7 +669,7 @@ body.dark-mode .carousel-indicators .active {
 
 .hero-tagline {
   display: inline-block;
-  margin-bottom: 16px; /* ⬅️ slightly tighter */
+  margin-bottom: 16px; 
   padding: 9px 18px;
 
   font-size: 0.95rem;
@@ -815,7 +689,6 @@ body.dark-mode .carousel-indicators .active {
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.15);
 
-  /* Glow kept controlled */
   box-shadow:
     0 0 10px rgba(96, 165, 250, 0.45),
     0 0 22px rgba(167, 139, 250, 0.35),
@@ -824,7 +697,6 @@ body.dark-mode .carousel-indicators .active {
   animation: glowPulse 3s ease-in-out infinite;
 }
 
-/* 🌟 Glow breathing animation */
 @keyframes glowPulse {
   0%, 100% {
     box-shadow:
@@ -903,9 +775,155 @@ body.dark-mode .carousel-indicators .active {
   box-shadow: 0 12px 28px rgba(0,0,0,0.12);
 }
 
-/* ===============================
-   🌙 Dark Mode Support
-================================ */
+/* =========================================================
+   🚀 BASE44 AI-STARTUP LIGHT MODE UI OVERHAUL
+   ========================================================= */
+
+body:not(.dark-mode) {
+  font-family: 'Inter', sans-serif;
+  background-color: #fafafa !important; /* Very soft off-white, standard for premium SaaS */
+  color: #0f172a !important; /* Deep Slate */
+}
+
+/* 🎯 Floating Pill Navbar (Light Mode Only) */
+body:not(.dark-mode) .modern-navbar {
+  position: fixed !important;
+  top: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: max-content !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 100px !important;
+  padding: 10px 32px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+body:not(.dark-mode) .modern-navbar .menu a {
+  color: #475569 !important;
+  font-weight: 500 !important;
+  font-size: 14.5px !important;
+  transition: color 0.2s ease;
+}
+
+body:not(.dark-mode) .modern-navbar .menu a:hover {
+  color: #0f172a !important;
+}
+
+/* 🎯 Hero Typography (Tight & Sharp) */
+body:not(.dark-mode) .hero-title {
+  font-family: 'Inter', sans-serif !important;
+  font-size: clamp(3rem, 6vw, 5.5rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.1 !important;
+  color: #0f172a !important;
+  margin-bottom: 24px !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) .hero-description {
+  font-size: 1.15rem !important;
+  color: #475569 !important; /* Slate 600 */
+  line-height: 1.6 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  max-width: 600px;
+  margin: 0 auto 32px !important;
+}
+
+/* 🎯 Hero Tagline (Base44 Pill Style) */
+body:not(.dark-mode) .hero-tagline {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+  border-radius: 99px !important;
+  padding: 6px 16px !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+  animation: none !important; /* Remove old glowing animation */
+}
+
+/* 🎯 Modern Buttons (Light Mode) */
+body:not(.dark-mode) .bw-button {
+  border-radius: 999px !important;
+  padding: 14px 28px !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.2px !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none;
+  display: inline-block;
+}
+
+body:not(.dark-mode) .bw-button-primary {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2) !important;
+}
+
+body:not(.dark-mode) .bw-button-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3) !important;
+}
+
+body:not(.dark-mode) .bw-button-secondary {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+}
+
+body:not(.dark-mode) .bw-button-secondary:hover {
+  background: #f8fafc !important;
+  border-color: rgba(0,0,0,0.2) !important;
+}
+
+body:not(.dark-mode) .primary-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-radius: 99px !important;
+  padding: 10px 24px !important;
+}
+
+/* =========================================================
+   🌙 DARK MODE THEME & PURE BLACK OVERRIDES
+   ========================================================= */
+
+/* Dark mode gradient & animation */
+body.dark-mode {
+  background: radial-gradient(
+    circle at top,
+    #3b82f6 0%,
+    #1e1b4b 35%,
+    #020617 80%
+  );
+  background-size: 200% 200%;
+  animation: backgroundFlow 14s ease infinite;
+  color: #e5e7eb;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  body.dark-mode {
+    animation: none;
+  }
+}
 
 body.dark-mode .what-you-get-card {
   background: rgba(255,255,255,0.06);
@@ -927,13 +945,7 @@ body.dark-mode .what-you-get-card .highlight {
   border-left-color: #60a5fa;
 }
 
-
-/* =========================================================
-   🖤 PURE BLACK & WHITE DARK THEME OVERRIDES
-   ========================================================= */
-
-/* ---------- Global ---------- */
-
+/* ---------- Global Pure Black Overrides ---------- */
 body.dark-mode {
   background: #050505 !important;
   color: #ffffff !important;
@@ -945,7 +957,6 @@ body.dark-mode * {
 }
 
 /* ---------- Typography ---------- */
-
 body.dark-mode h1,
 body.dark-mode h2,
 body.dark-mode h3,
@@ -961,7 +972,6 @@ body.dark-mode li {
 }
 
 /* ---------- Navbar ---------- */
-
 body.dark-mode .modern-navbar {
   background: rgba(5,5,5,0.9) !important;
   backdrop-filter: blur(16px);
@@ -982,7 +992,6 @@ body.dark-mode .menu a:hover {
 }
 
 /* ---------- Buttons ---------- */
-
 body.dark-mode .btn,
 body.dark-mode .primary-btn {
   background: #ffffff !important;
@@ -998,7 +1007,6 @@ body.dark-mode .primary-btn:hover {
 }
 
 /* ---------- Hero Description ---------- */
-
 body.dark-mode .hero-description {
   background: rgba(255,255,255,0.04) !important;
   color: #e5e7eb !important;
@@ -1006,7 +1014,6 @@ body.dark-mode .hero-description {
 }
 
 /* ---------- Cards (Services, Sections, Glass) ---------- */
-
 body.dark-mode .service-item,
 body.dark-mode .service-card,
 body.dark-mode .glass-card,
@@ -1024,14 +1031,12 @@ body.dark-mode .service-item h5 {
 }
 
 /* ---------- Info Highlight Card ---------- */
-
 body.dark-mode .service-info {
   background: #ffffff !important;
   color: #000000 !important;
 }
 
 /* ---------- Carousel / Testimonial ---------- */
-
 body.dark-mode .testimonial-text {
   background: #0f0f0f !important;
   color: #e5e7eb !important;
@@ -1048,7 +1053,6 @@ body.dark-mode .carousel-indicators .active {
 }
 
 /* ---------- Footer ---------- */
-
 body.dark-mode .footer {
   background: #050505 !important;
   border-top: 1px solid rgba(255,255,255,0.08);
@@ -1058,9 +1062,7 @@ body.dark-mode .footer a {
   color: #d1d5db !important;
 }
 
-
 /* ================= Footer Logo Branding ================= */
-
 .footer-logo {
   height: 36px;
   width: auto;
@@ -1080,7 +1082,6 @@ body:not(.dark-mode) .footer-logo {
 }
 
 /* ================= Footer Branding ================= */
-
 .footer-branding {
   display: flex;
   align-items: center;
@@ -1110,7 +1111,7 @@ body:not(.dark-mode) .footer-logo {
   transform: scale(1.08);
 }
 
-/* 🌙 DARK MODE */
+/* 🌙 DARK MODE LOGO LOGIC */
 .logo-light {
   display: none;
 }
@@ -1123,7 +1124,7 @@ body.dark-mode .logo-light {
   display: none;
 }
 
-/* ☀️ LIGHT MODE */
+/* ☀️ LIGHT MODE LOGO LOGIC */
 body:not(.dark-mode) .logo-dark {
   display: none;
 }
@@ -1138,4 +1139,286 @@ body:not(.dark-mode) .logo-light {
     justify-content: center;
     margin-top: 10px;
   }
+}
+/* =========================================================
+   🧩 BASE44 BENTO BOX & FOOTER UTILITIES (LIGHT MODE)
+   ========================================================= */
+
+body:not(.dark-mode) .bento-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+  transition: all 0.3s ease !important;
+  padding: 32px !important;
+}
+
+body:not(.dark-mode) .bento-card:hover {
+  border-color: rgba(0,0,0,0.15) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
+  transform: translateY(-4px) !important;
+}
+
+body:not(.dark-mode) .icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: #0f172a;
+}
+
+body:not(.dark-mode) .footer-link {
+  color: #475569 !important;
+  padding-left: 0 !important;
+}
+
+body:not(.dark-mode) .footer-link:hover {
+  color: #0f172a !important;
+  transform: translateX(4px) !important;
+}
+
+body:not(.dark-mode) .minimal-social {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border: none !important;
+}
+
+body:not(.dark-mode) .minimal-social:hover {
+  background: #e2e8f0 !important;
+  transform: translateY(-2px) !important;
+}
+/* =========================================================
+   🛠️ LIGHT MODE FIXES (NAVBAR OVERLAP & HERO BACKGROUND)
+   ========================================================= */
+
+/* 1. Fix the double-box issue in the Navbar menu */
+body:not(.dark-mode) .modern-navbar .menu {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 28px !important;
+}
+
+/* 2. Remove the dark background/images from the Hero section */
+body:not(.dark-mode) .carousel-item,
+body:not(.dark-mode) .slide-bg,
+body:not(.dark-mode) .carousel-inner {
+  background: #fafafa !important;
+  background-image: none !important; /* Removes the dark parallax image */
+}
+
+/* 3. Remove dark overlays from the original template */
+body:not(.dark-mode) .slide-bg::before,
+body:not(.dark-mode) .slide-bg::after,
+body:not(.dark-mode) .page-header::before,
+body:not(.dark-mode) .page-header::after {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* 4. Push the Hero content down so the floating navbar doesn't cover it */
+body:not(.dark-mode) .carousel-item .position-absolute {
+  padding-top: 140px !important; 
+}
+
+/* 5. Ensure the navbar logo and icons are perfectly centered */
+body:not(.dark-mode) .modern-navbar {
+  align-items: center !important;
+  height: 70px !important; 
+}
+/* =========================================================
+   🛠️ UI/UX POLISH & BUG FIXES 
+   ========================================================= */
+
+/* 1. Prevent floating navbar from overlapping page content */
+body {
+  padding-top: 120px !important;
+}
+
+/* Keep the Home Page Hero Carousel full-screen behind the navbar */
+.carousel {
+  margin-top: -120px !important;
+}
+
+/* 2. Fix Invisible "Quick Links" in Light Mode Footer */
+body:not(.dark-mode) .footer .btn.btn-link {
+  color: #475569 !important;
+}
+
+body:not(.dark-mode) .footer .btn.btn-link::before {
+  color: #94a3b8 !important;
+}
+
+body:not(.dark-mode) .footer .btn.btn-link:hover {
+  color: #0f172a !important;
+  transform: translateX(4px) !important;
+}
+
+/* 3. Fix Invisible Logo in Light Mode Navbar */
+body:not(.dark-mode) .modern-navbar .logo-img {
+  /* This forces the white/light logo to pure black for high contrast */
+  filter: brightness(0) !important; 
+  opacity: 0.9;
+}
+/* =========================================================
+   🛠️ FINAL LAYOUT & BENTO GRID FIXES
+   ========================================================= */
+
+/* 1. Fix the blank 8th Card (Make it a dark accent card) */
+body:not(.dark-mode) .service-info {
+  background: #0f172a !important; /* Deep slate background */
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body:not(.dark-mode) .service-info p {
+  color: #f8fafc !important; /* Crisp white text */
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+/* 2. Fix Hero Content colliding with the Navbar */
+.carousel-item .container {
+  padding-top: 100px !important; /* Pushes the hero text down safely below the pill */
+}
+
+/* 3. Make sure the Bento Grid aligns perfectly */
+.service-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: stretch; /* Makes all cards equal height */
+}
+/* =========================================================
+   🚀 FORCE MODERN TYPOGRAPHY (OVERWRITE TEMPLATE)
+   ========================================================= */
+
+/* Force the modern Inter font on EVERY element inside the carousel */
+#carouselExampleControlsNoTouching,
+#carouselExampleControlsNoTouching *,
+.carousel-item,
+.carousel-item h1,
+.carousel-item p,
+.carousel-item .hero-title,
+.carousel-item .display-4 {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Make the Hero Title sleek and elegant */
+.carousel-item .hero-title,
+.carousel-item .display-4 {
+    font-weight: 700 !important;
+    letter-spacing: -0.04em !important; /* Tight spacing for the SaaS look */
+    line-height: 1.1 !important;
+    color: #0f172a !important;
+    text-transform: none !important; /* Prevents template from forcing ALL CAPS */
+}
+
+/* Upgrade the Description */
+.carousel-item .hero-description {
+    font-weight: 400 !important;
+    font-size: 1.15rem !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.7 !important;
+    color: #475569 !important;
+    max-width: 650px !important;
+    margin: 0 auto 32px auto !important;
+}
+
+/* Ensure the Tagline Pill is clean */
+.carousel-item .hero-tagline {
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.02em !important;
+}
+/* =========================================================
+   🛠️ SLIDE VISIBILITY FIX (PREVENT CUT-OFF BUTTONS)
+   ========================================================= */
+
+/* 1. Target ONLY the Hero Carousel, not the Testimonial Carousel */
+#carouselExampleControlsNoTouching .carousel-item {
+    min-height: 80vh !important; 
+    height: auto !important; 
+}
+
+/* 2. Fix the absolute positioning specifically for the Hero */
+#carouselExampleControlsNoTouching .carousel-item .position-absolute {
+    position: relative !important; 
+    padding-top: 180px !important; 
+    padding-bottom: 100px !important; 
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 100% !important;
+}
+
+/* 3. Ensure the buttons stay visible and properly spaced */
+.hero-actions {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    margin-top: 40px !important;
+    position: relative !important;
+    z-index: 10 !important; 
+}
+
+.hero-actions .bw-button {
+    padding: 16px 32px !important;
+    font-size: 16px !important;
+}
+
+/* 4. Force Testimonial Carousel to reset to its natural size */
+.testimonial-carousel .carousel-item,
+.testimonial-carousel .owl-item {
+    min-height: 0 !important;
+    height: auto !important;
+    padding-bottom: 20px !important;
+}
+/* =========================================================
+   🚀 HERO BUTTON CUT-OFF FIX
+   ========================================================= */
+
+/* 1. Release the rigid absolute positioning so the container can grow */
+body .carousel-item .position-absolute {
+    position: relative !important;
+    height: auto !important;
+    min-height: 85vh !important; /* Ensures it still looks full-screen */
+    padding-top: 180px !important; /* Safely clears the floating navbar */
+    padding-bottom: 80px !important; /* Guarantees space for the buttons */
+}
+
+/* 2. Allow the parent background containers to stretch */
+body .carousel-item, 
+body .slide-bg,
+body .owl-carousel-item {
+    height: auto !important;
+}
+
+/* 3. Make sure the buttons have enough breathing room */
+body .hero-actions {
+    margin-top: 40px !important;
+    padding-bottom: 20px !important;
+}
+/* =========================================================
+   🚀 HERO VERTICAL SPACING FIX
+   ========================================================= */
+
+body .carousel-item .position-absolute,
+#carouselExampleControlsNoTouching .carousel-item .position-absolute {
+    align-items: flex-start !important; /* Stops the text from sinking to the dead center */
+    padding-top: 140px !important; /* The exact, perfect distance just below the floating navbar */
+    padding-bottom: 60px !important; 
 }

@@ -9,7 +9,7 @@ import {
 import "../../assets/css/navbar.css";
 
 export default function Navbar() {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false); // Default to light mode for this aesthetic
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Auto detect theme
@@ -20,13 +20,12 @@ export default function Navbar() {
       document.body.classList.add("dark-mode");
       setDarkMode(true);
     } else {
-      document.body.classList.add("dark-mode"); // force dark for black theme
-      setDarkMode(true);
-      localStorage.setItem("theme", "dark");
+      document.body.classList.remove("dark-mode");
+      setDarkMode(false);
     }
   }, []);
 
-  // Toggle theme (optional — keep if you want)
+  // Toggle theme
   const toggleTheme = () => {
     document.body.classList.toggle("dark-mode");
     const isDark = document.body.classList.contains("dark-mode");
@@ -43,6 +42,7 @@ export default function Navbar() {
           src="/img/aventra-logo.png"
           alt="Aventra Logo"
           className="logo-img"
+          style={{ height: "24px" }} // Keeping logo tight for the pill shape
         />
       </NavLink>
 
@@ -56,6 +56,7 @@ export default function Navbar() {
           src="/img/menu-white.png"
           alt="menu"
           className="hamburger-icon"
+          style={{ filter: darkMode ? 'none' : 'invert(1)' }} // Invert for light mode
         />
       </button>
 
@@ -76,12 +77,13 @@ export default function Navbar() {
       </div>
 
       {/* Right Actions */}
-      <div className="actions">
+      <div className="actions" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
 
         {/* Theme Toggle */}
         <button
           className="icon-btn theme-toggle"
           onClick={toggleTheme}
+          style={{ background: "transparent", border: "none", fontSize: "1.2rem", cursor: "pointer" }}
         >
           {darkMode ? "☀️" : "🌙"}
         </button>
