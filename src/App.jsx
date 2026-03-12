@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { useUser, useAuth } from "@clerk/clerk-react"; // ✅ Added useAuth
 import { useEffect } from "react";
 import axios from "axios";
+import ScrollToTop from "./Components/Pages/ScrollToTop";
 
 // Pages
 import Home from "./Components/Pages/Home";
@@ -88,6 +89,8 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
+
       <Routes>
         {/* MAIN PAGES */}
         <Route path="/" element={<Home />} />

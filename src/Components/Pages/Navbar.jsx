@@ -34,7 +34,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="modern-navbar">
+    <><nav className={`modern-navbar ${menuOpen ? "active" : ""}`}>
 
       {/* Logo */}
       <NavLink to="/" className="logo">
@@ -101,6 +101,6 @@ export default function Navbar() {
         </SignedIn>
 
       </div>
-    </nav>
+    </nav><div className="navbar-backdrop" onClick={() => setMenuOpen(false)}></div></>
   );
 }
