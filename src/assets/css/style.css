@@ -1,4 +1,4 @@
-/********** Template CSS **********/
+/********** Base44 AI-Startup Theme CSS **********/
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -9,13 +9,31 @@
     --dark: #181d38;
 }
 
-.fw-medium {
-    font-weight: 600 !important;
+/* ================= GLOBAL BACKGROUND & TYPOGRAPHY ================= */
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #fafafa !important; /* Soft off-white for premium SaaS */
+    color: #0f172a !important; /* Deep Slate */
+    min-height: 100vh;
+    padding-top: 120px !important;
+    transition: background 0.5s ease, color 0.5s ease;
 }
 
-.fw-semi-bold {
-    font-weight: 700 !important;
+h1 { font-size: clamp(28px, 4vw, 52px); }
+h2 { font-size: clamp(22px, 3vw, 36px); }
+p { font-size: clamp(14px, 1.6vw, 18px); }
+
+.fw-medium { font-weight: 600 !important; }
+.fw-semi-bold { font-weight: 700 !important; }
+
+img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
 }
+
+/* ================= UTILITIES ================= */
 
 .back-to-top {
     position: fixed;
@@ -24,11 +42,8 @@
     bottom: 5px;
     z-index: 99;
     border-radius: 4px;
-    /* height: 35px;
-    width: 35px; */
 }
 
-/*** Spinner ***/
 #spinner {
     opacity: 0;
     visibility: hidden;
@@ -42,36 +57,22 @@
     opacity: 1;
 }
 
-/*** Button ***/
+/* ================= BUTTONS & ACTIONS ================= */
+
+button, .btn, a { min-height: 44px; }
+
 .btn {
-    font-family: 'Inter', 'Nunito', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     transition: .5s;
 }
 
-.btn.btn-primary,
-.btn.btn-secondary {
-    color: #FFFFFF;
-}
+.btn.btn-primary, .btn.btn-secondary { color: #FFFFFF; }
 
-.btn-square {
-    width: 38px;
-    height: 38px;
-}
-
-.btn-sm-square {
-    width: 32px;
-    height: 32px;
-}
-
-.btn-lg-square {
-    width: 48px;
-    height: 48px;
-}
-
-.btn-square,
-.btn-sm-square,
-.btn-lg-square {
+.btn-square { width: 38px; height: 38px; }
+.btn-sm-square { width: 32px; height: 32px; }
+.btn-lg-square { width: 48px; height: 48px; }
+.btn-square, .btn-sm-square, .btn-lg-square {
     padding: 0;
     display: flex;
     align-items: center;
@@ -80,1345 +81,691 @@
     border-radius: 0px;
 }
 
-/*** Navbar ***/
-.navbar .dropdown-toggle::after {
-    border: none;
-    content: "\f107";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    vertical-align: middle;
-    margin-left: 8px;
-}
-
-.navbar-light .navbar-nav .nav-link {
-    margin-right: 30px;
-    padding: 25px 0;
-    color: #FFFFFF;
-    font-size: 15px;
-    text-transform: uppercase;
-    outline: none;
-}
-
-.navbar-light .navbar-nav .nav-link:hover,
-.navbar-light .navbar-nav .nav-link.active {
-    color: var(--primary);
-}
-
-@media (max-width: 991.98px) {
-    .navbar-light .navbar-nav .nav-link  {
-        margin-right: 0;
-        padding: 10px 0;
-    }
-
-    .navbar-light .navbar-nav {
-        border-top: 1px solid #EEEEEE;
-    }
-}
-
-.navbar-light .navbar-brand,
-.navbar-light a.btn {
-    height: 75px;
-}
-
-.navbar-light .navbar-nav .nav-link {
-    color: var(--dark);
-    font-weight: 500;
-}
-
-.navbar-light.sticky-top {
-    top: -100px;
-    transition: .5s;
-}
-
-@media (min-width: 992px) {
-    .navbar .nav-item .dropdown-menu {
-        display: block;
-        margin-top: 0;
-        opacity: 0;
-        visibility: hidden;
-        transition: .5s;
-    }
-
-    .navbar .dropdown-menu.fade-down {
-        top: 100%;
-        transform: rotateX(-75deg);
-        transform-origin: 0% 0%;
-    }
-
-    .navbar .nav-item:hover .dropdown-menu {
-        top: 100%;
-        transform: rotateX(0deg);
-        visibility: visible;
-        transition: .5s;
-        opacity: 1;
-    }
-}
-
-/*** Header carousel ***/
-@media (max-width: 768px) {
-    .header-carousel .owl-carousel-item {
-        position: relative;
-        min-height: 500px;
-    }
-    
-    .header-carousel .owl-carousel-item img {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-}
-
-.header-carousel .owl-nav {
-    position: absolute;
-    top: 50%;
-    right: 8%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-}
-
-.header-carousel .owl-nav .owl-prev,
-.header-carousel .owl-nav .owl-next {
-    margin: 7px 0;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #FFFFFF;
-    background: transparent;
-    border: 1px solid #FFFFFF;
-    font-size: 22px;
-    transition: .5s;
-}
-
-.header-carousel .owl-nav .owl-prev:hover,
-.header-carousel .owl-nav .owl-next:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-.page-header {
-    background: linear-gradient(rgba(24, 29, 56, .7), rgba(24, 29, 56, .7)), url(../img/carousel-1.jpg);
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: cover;
-}
-
-.page-header-inner {
-    background: rgba(15, 23, 43, .7);
-}
-
-.breadcrumb-item + .breadcrumb-item::before {
-    color: var(--light);
-}
-
-/*** Section Title ***/
-.section-title {
-    position: relative;
+/* Modern Pill Buttons */
+.bw-button {
+    border-radius: 999px !important;
+    padding: 14px 28px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.2px !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none;
     display: inline-block;
-    text-transform: uppercase;
 }
 
-.section-title::before {
-    position: absolute;
-    content: "";
-    width: calc(100% + 80px);
-    height: 2px;
-    top: 4px;
-    left: -40px;
-    background: var(--primary);
-    z-index: -1;
-}
-
-.section-title::after {
-    position: absolute;
-    content: "";
-    width: calc(100% + 120px);
-    height: 2px;
-    bottom: 5px;
-    left: -60px;
-    background: var(--primary);
-    z-index: -1;
-}
-
-.section-title.text-start::before {
-    width: calc(100% + 40px);
-    left: 0;
-}
-
-.section-title.text-start::after {
-    width: calc(100% + 60px);
-    left: 0;
-}
-
-/*** Service ***/
-.service-item {
-    background: var(--light);
-    transition: .5s;
-}
-
-.service-item:hover {
-    margin-top: -10px;
-    background: var(--primary);
-}
-
-.service-item * {
-    transition: .5s;
-}
-
-.service-item:hover * {
-    color: var(--light) !important;
-}
-
-/*** Categories & Courses ***/
-.category img,
-.course-item img {
-    transition: .5s;
-}
-
-.category a:hover img,
-.course-item:hover img {
-    transform: scale(1.1);
-}
-
-/*** Team ***/
-.team-item img {
-    transition: .5s;
-}
-
-.team-item:hover img {
-    transform: scale(1.1);
-}
-
-/*** Testimonial ***/
-.testimonial-carousel::before {
-    position: absolute;
-    content: "";
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 0;
-    background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
-    z-index: 1;
-}
-
-.testimonial-carousel::after {
-    position: absolute;
-    content: "";
-    top: 0;
-    right: 0;
-    height: 100%;
-    width: 0;
-    background: linear-gradient(to left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
-    z-index: 1;
-}
-
-@media (min-width: 768px) {
-    .testimonial-carousel::before,
-    .testimonial-carousel::after {
-        width: 200px;
-    }
-}
-
-@media (min-width: 992px) {
-    .testimonial-carousel::before,
-    .testimonial-carousel::after {
-        width: 300px;
-    }
-}
-
-.testimonial-carousel .owl-item .testimonial-text,
-.testimonial-carousel .owl-item.center .testimonial-text * {
-    transition: .5s;
-}
-
-.testimonial-carousel .owl-item.center .testimonial-text {
-    background: var(--primary) !important;
-}
-
-.testimonial-carousel .owl-item.center .testimonial-text * {
-    color: #FFFFFF !important;
-}
-
-.testimonial-carousel .owl-dots {
-    margin-top: 24px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-}
-
-.testimonial-carousel .owl-dot {
-    position: relative;
-    display: inline-block;
-    margin: 0 5px;
-    width: 15px;
-    height: 15px;
-    border: 1px solid #CCCCCC;
-    transition: .5s;
-}
-
-.testimonial-carousel .owl-dot.active {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-/*** Footer ***/
-
-/* Social icons */
-.footer .btn.btn-social {
-    margin-right: 6px;
-    width: 36px;
-    height: 36px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: rgba(255,255,255,0.85);
-    font-weight: normal;
-
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 50%;
-
-    background: transparent;
-    transition: all 0.3s ease;
-}
-
-.footer .btn.btn-social:hover {
-    color: #ffffff;
-    border-color: #ffffff;
-    transform: translateY(-2px);
-}
-
-/* ===============================
-   ✅ Quick Links Fix
-================================ */
-
-.footer .btn.btn-link {
-    display: block;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-
-    margin-bottom: 10px;
-    padding: 0;
-
-    text-align: left;
-    color: rgba(255,255,255,0.8) !important;
-    font-size: 15px;
-    font-weight: 400;
-    text-transform: capitalize;
-
-    transition: all 0.25s ease;
-}
-
-/* Arrow icon */
-.footer .btn.btn-link::before {
-    position: relative;
-    content: "\f105";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-
-    margin-right: 10px;
-    color: rgba(255,255,255,0.5);
-}
-
-/* Hover animation */
-.footer .btn.btn-link:hover {
+.bw-button-primary {
+    background: #0f172a !important;
     color: #ffffff !important;
-    transform: translateX(6px);
-    letter-spacing: 0.3px;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2) !important;
 }
 
-/* Subtle divider between links */
-.footer .btn.btn-link:not(:last-child) {
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    padding-bottom: 10px;
+.bw-button-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3) !important;
 }
 
-/* Copyright */
-.footer .copyright {
-    padding: 25px 0;
-    font-size: 14px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+.bw-button-secondary {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
 }
 
-.footer .copyright a {
-    color: rgba(255,255,255,0.85);
+.bw-button-secondary:hover {
+    background: #f8fafc !important;
+    border-color: rgba(0,0,0,0.2) !important;
 }
 
-/* Footer menu links */
-.footer .footer-menu a {
-    margin-right: 14px;
-    padding-right: 14px;
-    border-right: 1px solid rgba(255,255,255,0.15);
+.primary-btn {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-radius: 99px !important;
+    padding: 10px 24px !important;
 }
 
-.footer .footer-menu a:last-child {
-    margin-right: 0;
-    padding-right: 0;
-    border-right: none;
+/* ================= MODERN NAVBAR (LIGHT MODE BASE) ================= */
+
+.modern-navbar {
+    position: fixed !important;
+    top: 24px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: max-content !important;
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 100px !important;
+    padding: 10px 32px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    z-index: 1000;
+    display: flex !important;
+    align-items: center !important;
+    gap: 32px;
+    height: 70px !important; 
+}
+.modern-navbar{
+    transition: all .35s ease;
 }
 
-/* =========================================================
-   🚀 Coming Soon Section – Modern Card Style
-   ========================================================= */
+.modern-navbar .menu {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    gap: 28px !important;
+    display: flex;
+}
 
+/* mobile menu closed by default */
+@media (max-width:768px){
+
+    .modern-navbar .menu{
+        display:none !important;
+        flex-direction:column;
+        position:absolute;
+        top:80px;
+        left:0;
+        right:0;
+        background:#ffffff;
+        padding:20px;
+        border-radius:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .modern-navbar.active .menu{
+        display:flex !important;
+    }
+
+}
+
+.modern-navbar .menu a {
+    color: #475569 !important;
+    font-weight: 500 !important;
+    font-size: 14.5px !important;
+    transition: color 0.2s ease;
+}
+
+.modern-navbar .menu a:hover {
+    color: #0f172a !important;
+}
+
+.modern-navbar .logo-img {
+    filter: brightness(0) !important; 
+    opacity: 0.9;
+}
+
+/* ================= HERO & CAROUSEL SECTION ================= */
+
+.carousel {
+    margin-top: -120px !important; /* Full-screen behind navbar */
+}
+
+.carousel-item,
+.slide-bg,
+.carousel-inner {
+    background: #fafafa !important;
+    background-image: none !important; 
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.slide-bg::before,
+.slide-bg::after,
+.page-header::before,
+.page-header::after {
+    display: none !important;
+    background: transparent !important;
+}
+
+/* Hero Content Layout & Spacing */
+.carousel-item .position-absolute,
+#carouselExampleControlsNoTouching .carousel-item .position-absolute {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important; 
+    align-items: center !important; 
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding-top: 100px !important; 
+    padding-bottom: 60px !important;
+}
+
+.carousel-item .container {
+    padding-top: 100px !important; 
+}
+
+/* Hero Typography Overrides */
+#carouselExampleControlsNoTouching,
+#carouselExampleControlsNoTouching *,
+.carousel-item h1,
+.carousel-item p {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+.hero-title,
+.carousel-item .hero-title,
+.carousel-item .display-4 {
+    font-size: clamp(3rem, 6vw, 5.5rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.04em !important;
+    line-height: 1.1 !important;
+    color: #0f172a !important;
+    margin-bottom: 24px !important;
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
+    text-shadow: none !important;
+    text-transform: none !important; 
+}
+
+.hero-description {
+    font-weight: 400 !important;
+    font-size: 1.15rem !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.7 !important;
+    color: #475569 !important; 
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 650px !important;
+    margin: 0 auto 32px auto !important;
+}
+
+.hero-tagline {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    border-radius: 99px !important;
+    padding: 6px 16px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    color: #475569 !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+    animation: none !important; 
+}
+
+.hero-actions {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+    gap: 20px !important;
+    flex-wrap: wrap;
+    margin-top: 40px !important;
+    padding-bottom: 20px !important;
+    position: relative !important;
+    z-index: 10 !important; 
+}
+
+.hero-actions .btn { white-space: nowrap; }
+.hero-actions .bw-button { padding: 16px 32px !important; font-size: 16px !important; }
+
+/* Gradient Text Fallback */
+.gradient-text {
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #22d3ee);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(96, 165, 250, 0.35);
+}
+
+/* ================= CARDS & LAYOUTS ================= */
+
+/* Section Titles */
+.section-title { position: relative; display: inline-block; text-transform: uppercase; }
+.section-title::before { position: absolute; content: ""; width: calc(100% + 80px); height: 2px; top: 4px; left: -40px; background: var(--primary); z-index: -1; }
+.section-title::after { position: absolute; content: ""; width: calc(100% + 120px); height: 2px; bottom: 5px; left: -60px; background: var(--primary); z-index: -1; }
+.section-title.text-start::before { width: calc(100% + 40px); left: 0; }
+.section-title.text-start::after { width: calc(100% + 60px); left: 0; }
+
+/* Bento Grid */
+.service-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    align-items: stretch;
+}
+
+.bento-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+    transition: all 0.3s ease !important;
+    padding: 32px !important;
+}
+
+.bento-card:hover {
+    border-color: rgba(0,0,0,0.15) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
+    transform: translateY(-4px) !important;
+}
+
+.icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    color: #0f172a;
+}
+
+/* Template Service Items */
+.service-item { background: var(--light); transition: .5s; }
+.service-item:hover { margin-top: -10px; background: var(--primary); }
+.service-item * { transition: .5s; }
+.service-item:hover * { color: var(--light) !important; }
+
+/* Accent Info Card (8th card fix) */
+.service-info {
+    background: #0f172a !important; 
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.service-info p {
+    color: #f8fafc !important; 
+    font-size: 1.1rem !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+}
+
+/* What You Get Section */
+.what-you-get-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 45px 50px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+}
+.what-you-get-card h2 { font-size: 34px; font-weight: 700; margin-bottom: 10px; color: #0f172a; }
+.what-you-get-card h4 { font-size: 20px; font-weight: 600; margin-bottom: 18px; color: #334155; }
+.what-you-get-card h4 span { color: #06b6d4; }
+.what-you-get-card .highlight { background: rgba(6,182,212,0.1); padding: 14px 18px; border-left: 4px solid #06b6d4; border-radius: 6px; margin-bottom: 20px; font-weight: 600; }
+.what-you-get-card ul { padding-left: 18px; margin: 0; }
+.what-you-get-card li { margin-bottom: 10px; line-height: 1.6; color: #1e293b; }
+
+/* Coming Soon Section */
 .coming-soon-card {
     max-width: 900px;
     margin: 40px auto 0;
     text-align: center;
     padding: 60px 40px;
     border-radius: 24px;
-
-    /* Glass gradient */
-    background: linear-gradient(
-        135deg,
-        rgba(116, 177, 252, 0.18),
-        rgba(6, 187, 204, 0.18)
-    );
-
+    background: linear-gradient(135deg, rgba(116, 177, 252, 0.18), rgba(6, 187, 204, 0.18));
     backdrop-filter: blur(10px);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
     transition: all 0.35s ease;
 }
+.coming-soon-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12); }
+.coming-soon-card h2 { font-size: 36px; font-weight: 700; color: var(--dark); margin-bottom: 18px; }
+.coming-soon-card p { font-size: 18px; color: #555; max-width: 680px; margin: 0 auto 22px; line-height: 1.6; }
+.coming-soon-card span { display: inline-block; background: var(--primary); color: #fff; padding: 10px 26px; border-radius: 30px; font-size: 14px; letter-spacing: 0.3px; }
 
-.coming-soon-card:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
+/* Testimonial & Courses */
+.category img, .course-item img, .team-item img { transition: .5s; }
+.category a:hover img, .course-item:hover img, .team-item:hover img { transform: scale(1.1); }
+.category img { border-radius: 16px; box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+.course-item { margin-bottom: 20px; }
+
+.testimonial-carousel .carousel-item,
+.testimonial-carousel .owl-item { min-height: 0 !important; height: auto !important; padding-bottom: 20px !important; }
+.testimonial-carousel .owl-item .testimonial-text, .testimonial-carousel .owl-item.center .testimonial-text * { transition: .5s; }
+.testimonial-carousel .owl-item.center .testimonial-text { background: var(--primary) !important; }
+.testimonial-carousel .owl-item.center .testimonial-text * { color: #FFFFFF !important; }
+
+/* ================= FOOTER ================= */
+
+.footer .btn.btn-social {
+    margin-right: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.85); font-weight: normal; border: 1px solid rgba(255,255,255,0.25); border-radius: 50%;
+    background: transparent; transition: all 0.3s ease;
+}
+.footer .btn.btn-social:hover { color: #ffffff; border-color: #ffffff; transform: translateY(-2px); }
+
+.minimal-social { background: #f1f5f9 !important; color: #0f172a !important; border: none !important; }
+.minimal-social:hover { background: #e2e8f0 !important; transform: translateY(-2px) !important; }
+
+.footer .btn.btn-link, .footer-link {
+    display: block; background: transparent !important; border: none !important; box-shadow: none !important;
+    margin-bottom: 10px; padding: 0; text-align: left; font-size: 15px; font-weight: 400; text-transform: capitalize;
+    transition: all 0.25s ease; color: #475569 !important; padding-left: 0 !important;
+}
+.footer .btn.btn-link::before {
+    position: relative; content: "\f105"; font-family: "Font Awesome 5 Free"; font-weight: 900;
+    margin-right: 10px; color: #94a3b8 !important;
+}
+.footer .btn.btn-link:hover, .footer-link:hover {
+    color: #0f172a !important; transform: translateX(4px) !important; letter-spacing: 0.3px;
+}
+.footer .btn.btn-link:not(:last-child) { border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 10px; }
+
+.footer .copyright { padding: 25px 0; font-size: 14px; border-top: 1px solid rgba(0,0,0,0.08); }
+.footer .copyright a { color: rgba(0,0,0,0.85); }
+.footer .footer-menu a { margin-right: 14px; padding-right: 14px; border-right: 1px solid rgba(0,0,0,0.15); }
+.footer .footer-menu a:last-child { margin-right: 0; padding-right: 0; border-right: none; }
+
+.footer-branding { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+.powered-text { font-size: 14px; opacity: 0.9; }
+.powered-text a { color: #0f172a; border-bottom: 1px solid rgba(0,0,0,0.4); }
+
+.footer-logo {
+    height: 34px; width: auto; object-fit: contain; transition: transform 0.3s ease, filter 0.3s ease;
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
+}
+.footer-logo:hover { transform: scale(1.08); filter: drop-shadow(0 0 12px rgba(0,0,0,0.45)); }
+
+/* Light/Dark Logo Toggle */
+body:not(.dark-mode) .logo-dark { display: none; }
+body:not(.dark-mode) .logo-light { display: inline-block; }
+body.dark-mode .logo-dark { display: inline-block; }
+body.dark-mode .logo-light { display: none; }
+
+/* =========================================================
+   🌙 DARK MODE OVERRIDES
+   ========================================================= */
+
+body.dark-mode {
+    background: #050505 !important;
+    color: #ffffff !important;
+    animation: none !important;
 }
 
-/* Title */
-.coming-soon-card h2 {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--dark);
-    margin-bottom: 18px;
+body.dark-mode * { border-color: rgba(255,255,255,0.08); }
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5 { color: #ffffff !important; }
+body.dark-mode p, body.dark-mode span, body.dark-mode li { color: #d1d5db !important; }
+
+/* Dark Mode Navbar */
+body.dark-mode .modern-navbar {
+    background: rgba(5,5,5,0.9) !important;
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+body.dark-mode .menu {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+body.dark-mode .menu a { color: #f9fafb !important; }
+body.dark-mode .menu a:hover { opacity: 0.7; }
+body.dark-mode .modern-navbar .logo-img { filter: none !important; opacity: 1; }
+
+/* Dark Mode Hero overrides */
+body.dark-mode .carousel-item .hero-title,
+body.dark-mode .carousel-item .display-4 { color: #ffffff !important; }
+body.dark-mode .carousel-item .hero-description { color: #a1a1aa !important; }
+
+body.dark-mode .carousel-item .hero-tagline {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e5e7eb !important;
+    padding: 8px 20px !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1) !important;
+    animation: darkPillGlow 3s ease-in-out infinite !important;
 }
 
-/* Description */
-.coming-soon-card p {
-    font-size: 18px;
-    color: #555;
-    max-width: 680px;
-    margin: 0 auto 22px;
-    line-height: 1.6;
+@keyframes darkPillGlow {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.05); transform: scale(1); }
+    50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.15); transform: scale(1.02); }
 }
 
-/* Badge */
-.coming-soon-card span {
-    display: inline-block;
-    background: var(--primary);
-    color: #fff;
-    padding: 10px 26px;
-    border-radius: 30px;
-    font-size: 14px;
-    letter-spacing: 0.3px;
+/* Dark Mode Cards & Sections */
+body.dark-mode .service-item,
+body.dark-mode .service-card,
+body.dark-mode .glass-card,
+body.dark-mode .bento-card,
+body.dark-mode .what-you-get-card,
+body.dark-mode .coming-soon-card {
+    background: #111111 !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7) !important;
 }
 
-/* Mobile Responsive */
+body.dark-mode .service-card h5, body.dark-mode .service-item h5 { color: #ffffff !important; }
+
+/* Dark Mode Accent Info Card */
+body.dark-mode .service-info { background: #ffffff !important; border: none !important; }
+body.dark-mode .service-info p { color: #000000 !important; font-weight: 600 !important; }
+
+body.dark-mode .what-you-get-card {
+    background: rgba(255,255,255,0.06) !important;
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(59,130,246,0.35) !important;
+    box-shadow: 0 0 20px rgba(59,130,246,0.25), inset 0 0 10px rgba(255,255,255,0.05) !important;
+}
+body.dark-mode .what-you-get-card h2, body.dark-mode .what-you-get-card h4, body.dark-mode .what-you-get-card li { color: rgba(255,255,255,0.9); }
+body.dark-mode .what-you-get-card .highlight { background: rgba(59,130,246,0.15); border-left-color: #60a5fa; }
+
+body.dark-mode .testimonial-text { background: #0f0f0f !important; color: #e5e7eb !important; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); }
+
+/* Dark Mode Buttons */
+body.dark-mode .btn, body.dark-mode .primary-btn, body.dark-mode .bw-button-primary {
+    background: #ffffff !important; color: #000000 !important; border: none !important; box-shadow: 0 0 12px rgba(255,255,255,0.25);
+}
+body.dark-mode .btn:hover, body.dark-mode .primary-btn:hover, body.dark-mode .bw-button-primary:hover {
+    transform: translateY(-2px); box-shadow: 0 0 20px rgba(255,255,255,0.4);
+}
+
+/* Dark Mode Footer */
+body.dark-mode .footer { background: #050505 !important; border-top: 1px solid rgba(255,255,255,0.08); }
+body.dark-mode .footer a, body.dark-mode .footer .btn.btn-link, body.dark-mode .footer-link { color: #d1d5db !important; }
+body.dark-mode .footer .btn.btn-link::before { color: rgba(255,255,255,0.5) !important; }
+body.dark-mode .footer .btn.btn-link:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.08); }
+
+/* ================= MEDIA QUERIES ================= */
+
+@media (max-width: 991.98px) {
+    .navbar-light .navbar-nav .nav-link { margin-right: 0; padding: 10px 0; }
+    .navbar-light .navbar-nav { border-top: 1px solid #EEEEEE; }
+}
+
+@media (min-width: 992px) {
+    .navbar .nav-item .dropdown-menu { display: block; margin-top: 0; opacity: 0; visibility: hidden; transition: .5s; }
+    .navbar .dropdown-menu.fade-down { top: 100%; transform: rotateX(-75deg); transform-origin: 0% 0%; }
+    .navbar .nav-item:hover .dropdown-menu { top: 100%; transform: rotateX(0deg); visibility: visible; transition: .5s; opacity: 1; }
+}
+
 @media (max-width: 768px) {
-    .coming-soon-card {
-        padding: 40px 25px;
-    }
-
-    .coming-soon-card h2 {
-        font-size: 26px;
-    }
-
-    .coming-soon-card p {
-        font-size: 16px;
-    }
-}
-
-/* ================= Responsive Typography ================= */
-
-h1 {
-  font-size: clamp(28px, 4vw, 52px);
-}
-
-h2 {
-  font-size: clamp(22px, 3vw, 36px);
-}
-
-p {
-  font-size: clamp(14px, 1.6vw, 18px);
-}
-
-/* ================= Course Cards Responsive ================= */
-
-.course-item {
-  margin-bottom: 20px;
+    .header-carousel .owl-carousel-item { position: relative; min-height: 500px; }
+    .header-carousel .owl-carousel-item img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+    .coming-soon-card { padding: 40px 25px; }
+    .coming-soon-card h2 { font-size: 26px; }
+    .coming-soon-card p { font-size: 16px; }
+    .hero-description { font-size: 0.9rem; padding: 12px 14px; }
+    .hero-tagline { font-size: 0.85rem; padding: 8px 14px; }
+    .footer-branding { justify-content: center; margin-top: 10px; }
 }
 
 @media (max-width: 576px) {
-  .course-item {
-    max-width: 100%;
-  }
+    .course-item { max-width: 100%; }
 }
-
-/* ================= Image Responsive ================= */
-
-img {
-  max-width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-/* ================= Touch Optimization ================= */
-
-button, .btn, a {
-  min-height: 44px;
-}
-
-/* ================= GLOBAL BACKGROUND THEME ================= */
-
-body {
-  background: #f8fafc;
-  color: #020617;
-  min-height: 100vh;
-  transition: background 0.5s ease, color 0.5s ease;
-}
-
-/* ================= HERO GRADIENT TEXT ================= */
-
-.hero-title {
-  font-size: clamp(36px, 5vw, 72px);
-  font-weight: 800;
-  line-height: 1.1;
-
-  background: linear-gradient(
-    90deg,
-    #60a5fa,
-    #a78bfa,
-    #22d3ee
-  );
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  text-shadow: 0 0 30px rgba(96, 165, 250, 0.35);
-  animation: heroGradientMove 6s ease infinite;
-}
-
-/* ================= Gradient Heading Text ================= */
-
-.gradient-text {
-  background: linear-gradient(
-    90deg,
-    #60a5fa,
-    #a78bfa,
-    #22d3ee
-  );
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  text-shadow: 0 0 30px rgba(96, 165, 250, 0.35);
-  animation: heroGradientMove 6s ease infinite;
-}
-
-/* ================= HERO DESCRIPTION ================= */
-
-.hero-description {
-  max-width: 520px;
-  margin-top: 16px;
-  margin-bottom: 20px; 
-
-  font-size: 1.05rem;
-  line-height: 1.65;
-  letter-spacing: 0.2px;
-
-  color: rgba(255, 255, 255, 0.92);
-
-  background: rgba(0, 0, 0, 0.28);
-  padding: 14px 18px;
-  border-radius: 12px;
-
-  box-shadow: 0 8px 22px rgba(0,0,0,0.25);
-}
-
-/* Mobile optimization */
-@media (max-width: 768px) {
-  .hero-description {
-    font-size: 0.9rem;
-    padding: 12px 14px;
-  }
-}
-
-/* ================= HERO ACTIONS ================= */
-
-.hero-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-/* Prevent buttons dropping too far */
-.hero-actions .btn {
-  white-space: nowrap;
-}
-
-
-/* ================= HERO TAGLINE ================= */
-
-.hero-tagline {
-  display: inline-block;
-  margin-bottom: 16px; 
-  padding: 9px 18px;
-
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-
-  color: #e0f2fe;
-
-  background: linear-gradient(
-    90deg,
-    rgba(96, 165, 250, 0.25),
-    rgba(167, 139, 250, 0.25),
-    rgba(34, 211, 238, 0.25)
-  );
-
-  backdrop-filter: blur(8px);
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.15);
-
-  box-shadow:
-    0 0 10px rgba(96, 165, 250, 0.45),
-    0 0 22px rgba(167, 139, 250, 0.35),
-    0 0 36px rgba(34, 211, 238, 0.25);
-
-  animation: glowPulse 3s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%, 100% {
-    box-shadow:
-      0 0 10px rgba(96, 165, 250, 0.45),
-      0 0 22px rgba(167, 139, 250, 0.35),
-      0 0 36px rgba(34, 211, 238, 0.25);
-  }
-  50% {
-    box-shadow:
-      0 0 16px rgba(96, 165, 250, 0.7),
-      0 0 32px rgba(167, 139, 250, 0.55),
-      0 0 52px rgba(34, 211, 238, 0.45);
-  }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .hero-tagline {
-    font-size: 0.85rem;
-    padding: 8px 14px;
-  }
-}
-
-/* ===============================
-   🎯 What You Get Section Styling
-================================ */
-
-.what-you-get-card {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 45px 50px;
-  box-shadow: 0 12px 35px rgba(0,0,0,0.08);
-}
-
-.what-you-get-card h2 {
-  font-size: 34px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: #0f172a;
-}
-
-.what-you-get-card h4 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 18px;
-  color: #334155;
-}
-
-.what-you-get-card h4 span {
-  color: #06b6d4;
-}
-
-.what-you-get-card .highlight {
-  background: rgba(6,182,212,0.1);
-  padding: 14px 18px;
-  border-left: 4px solid #06b6d4;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-weight: 600;
-}
-
-.what-you-get-card ul {
-  padding-left: 18px;
-  margin: 0;
-}
-
-.what-you-get-card li {
-  margin-bottom: 10px;
-  line-height: 1.6;
-  color: #1e293b;
-}
-
-/* Image card spacing */
-.category img {
-  border-radius: 16px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-}
-
 /* =========================================================
-   🚀 BASE44 AI-STARTUP LIGHT MODE UI OVERHAUL
+   🌙 COMPLETE DARK MODE FIXES
+   Place this at the VERY END of style.css
    ========================================================= */
 
-body:not(.dark-mode) {
-  font-family: 'Inter', sans-serif;
-  background-color: #fafafa !important; /* Very soft off-white, standard for premium SaaS */
-  color: #0f172a !important; /* Deep Slate */
-}
-
-/* 🎯 Floating Pill Navbar (Light Mode Only) */
-body:not(.dark-mode) .modern-navbar {
-  position: fixed !important;
-  top: 24px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  width: max-content !important;
-  background: rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 100px !important;
-  padding: 10px 32px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-body:not(.dark-mode) .modern-navbar .menu a {
-  color: #475569 !important;
-  font-weight: 500 !important;
-  font-size: 14.5px !important;
-  transition: color 0.2s ease;
-}
-
-body:not(.dark-mode) .modern-navbar .menu a:hover {
-  color: #0f172a !important;
-}
-
-/* 🎯 Hero Typography (Tight & Sharp) */
-body:not(.dark-mode) .hero-title {
-  font-family: 'Inter', sans-serif !important;
-  font-size: clamp(3rem, 6vw, 5.5rem) !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.04em !important;
-  line-height: 1.1 !important;
-  color: #0f172a !important;
-  margin-bottom: 24px !important;
-  background: none !important;
-  -webkit-text-fill-color: initial !important;
-  text-shadow: none !important;
-}
-
-body:not(.dark-mode) .hero-description {
-  font-size: 1.15rem !important;
-  color: #475569 !important; /* Slate 600 */
-  line-height: 1.6 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  max-width: 600px;
-  margin: 0 auto 32px !important;
-}
-
-/* 🎯 Hero Tagline (Base44 Pill Style) */
-body:not(.dark-mode) .hero-tagline {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 8px;
-  background: #ffffff !important;
-  border: 1px solid rgba(0,0,0,0.1) !important;
-  border-radius: 99px !important;
-  padding: 6px 16px !important;
-  font-size: 13.5px !important;
-  font-weight: 500 !important;
-  color: #475569 !important;
-  margin-bottom: 24px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
-  animation: none !important; /* Remove old glowing animation */
-}
-
-/* 🎯 Modern Buttons (Light Mode) */
-body:not(.dark-mode) .bw-button {
-  border-radius: 999px !important;
-  padding: 14px 28px !important;
-  font-size: 15px !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.2px !important;
-  transition: all 0.2s ease !important;
-  text-decoration: none;
-  display: inline-block;
-}
-
-body:not(.dark-mode) .bw-button-primary {
-  background: #0f172a !important;
-  color: #ffffff !important;
-  border: none !important;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2) !important;
-}
-
-body:not(.dark-mode) .bw-button-primary:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3) !important;
-}
-
-body:not(.dark-mode) .bw-button-secondary {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border: 1px solid rgba(0,0,0,0.1) !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
-}
-
-body:not(.dark-mode) .bw-button-secondary:hover {
-  background: #f8fafc !important;
-  border-color: rgba(0,0,0,0.2) !important;
-}
-
-body:not(.dark-mode) .primary-btn {
-  background: #0f172a !important;
-  color: #ffffff !important;
-  border-radius: 99px !important;
-  padding: 10px 24px !important;
-}
-
-/* =========================================================
-   🌙 DARK MODE THEME & PURE BLACK OVERRIDES
-   ========================================================= */
-
-/* Dark mode gradient & animation */
+/* Background */
 body.dark-mode {
-  background: radial-gradient(
-    circle at top,
-    #3b82f6 0%,
-    #1e1b4b 35%,
-    #020617 80%
-  );
-  background-size: 200% 200%;
-  animation: backgroundFlow 14s ease infinite;
-  color: #e5e7eb;
+    background: #050505 !important;
+    color: #ffffff !important;
 }
 
-/* Reduce motion for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  body.dark-mode {
-    animation: none;
-  }
+/* Generic text */
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode li {
+    color: #d1d5db !important;
 }
 
+/* Navbar */
+body.dark-mode .modern-navbar {
+    background: rgba(10,10,10,0.85) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important;
+}
+
+body.dark-mode .modern-navbar .menu a {
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .modern-navbar .menu a:hover {
+    color: #ffffff !important;
+}
+
+/* Carousel / Hero background */
+body.dark-mode .carousel-item,
+body.dark-mode .slide-bg,
+body.dark-mode .carousel-inner {
+    background: #050505 !important;
+}
+
+/* Hero */
+body.dark-mode .hero-title {
+    color: #ffffff !important;
+}
+
+body.dark-mode .hero-description {
+    color: #9ca3af !important;
+}
+
+body.dark-mode .hero-tagline {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #e5e7eb !important;
+}
+
+/* Buttons */
+body.dark-mode .bw-button-primary {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+body.dark-mode .bw-button-secondary {
+    background: #111111 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* Cards */
+body.dark-mode .bento-card,
+body.dark-mode .service-item,
+body.dark-mode .service-card,
+body.dark-mode .glass-card,
+body.dark-mode .course-item {
+    background: #111111 !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+}
+
+/* Icon wrapper */
+body.dark-mode .icon-wrapper {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+/* What you get card */
 body.dark-mode .what-you-get-card {
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(59,130,246,0.35);
-  box-shadow:
-    0 0 20px rgba(59,130,246,0.25),
-    inset 0 0 10px rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
 }
 
 body.dark-mode .what-you-get-card h2,
 body.dark-mode .what-you-get-card h4,
 body.dark-mode .what-you-get-card li {
-  color: rgba(255,255,255,0.9);
+    color: #e5e7eb !important;
 }
 
-body.dark-mode .what-you-get-card .highlight {
-  background: rgba(59,130,246,0.15);
-  border-left-color: #60a5fa;
-}
-
-/* ---------- Global Pure Black Overrides ---------- */
-body.dark-mode {
-  background: #050505 !important;
-  color: #ffffff !important;
-  animation: none !important;  /* remove animated blue gradient */
-}
-
-body.dark-mode * {
-  border-color: rgba(255,255,255,0.08);
-}
-
-/* ---------- Typography ---------- */
-body.dark-mode h1,
-body.dark-mode h2,
-body.dark-mode h3,
-body.dark-mode h4,
-body.dark-mode h5 {
-  color: #ffffff !important;
-}
-
-body.dark-mode p,
-body.dark-mode span,
-body.dark-mode li {
-  color: #d1d5db !important;
-}
-
-/* ---------- Navbar ---------- */
-body.dark-mode .modern-navbar {
-  background: rgba(5,5,5,0.9) !important;
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-body.dark-mode .menu {
-  background: rgba(255,255,255,0.04) !important;
-  box-shadow: 0 0 20px rgba(255,255,255,0.05);
-}
-
-body.dark-mode .menu a {
-  color: #f9fafb !important;
-}
-
-body.dark-mode .menu a:hover {
-  opacity: 0.7;
-}
-
-/* ---------- Buttons ---------- */
-body.dark-mode .btn,
-body.dark-mode .primary-btn {
-  background: #ffffff !important;
-  color: #000000 !important;
-  border: none !important;
-  box-shadow: 0 0 12px rgba(255,255,255,0.25);
-}
-
-body.dark-mode .btn:hover,
-body.dark-mode .primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(255,255,255,0.4);
-}
-
-/* ---------- Hero Description ---------- */
-body.dark-mode .hero-description {
-  background: rgba(255,255,255,0.04) !important;
-  color: #e5e7eb !important;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.6);
-}
-
-/* ---------- Cards (Services, Sections, Glass) ---------- */
-body.dark-mode .service-item,
-body.dark-mode .service-card,
-body.dark-mode .glass-card,
-body.dark-mode .what-you-get-card,
+/* Coming soon card */
 body.dark-mode .coming-soon-card {
-  background: #111111 !important;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+    background: #111111 !important;
+    color: #e5e7eb !important;
 }
 
-/* Card text */
-body.dark-mode .service-card h5,
-body.dark-mode .service-item h5 {
-  color: #ffffff !important;
-}
-
-/* ---------- Info Highlight Card ---------- */
-body.dark-mode .service-info {
-  background: #ffffff !important;
-  color: #000000 !important;
-}
-
-/* ---------- Carousel / Testimonial ---------- */
+/* Testimonial */
 body.dark-mode .testimonial-text {
-  background: #0f0f0f !important;
-  color: #e5e7eb !important;
-  border-radius: 16px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+    background: #111111 !important;
+    color: #e5e7eb !important;
 }
 
-body.dark-mode .carousel-indicators button {
-  background-color: rgba(255,255,255,0.4) !important;
+body.dark-mode .testimonial-carousel .carousel-item {
+    background: transparent !important;
 }
 
-body.dark-mode .carousel-indicators .active {
-  background-color: #ffffff !important;
+/* Images */
+body.dark-mode .category img {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.9) !important;
 }
 
-/* ---------- Footer ---------- */
+/* Footer */
 body.dark-mode .footer {
-  background: #050505 !important;
-  border-top: 1px solid rgba(255,255,255,0.08);
+    background: #050505 !important;
 }
 
-body.dark-mode .footer a {
-  color: #d1d5db !important;
+body.dark-mode .footer a,
+body.dark-mode .footer .btn.btn-link {
+    color: #d1d5db !important;
 }
 
-/* ================= Footer Logo Branding ================= */
-.footer-logo {
-  height: 36px;
-  width: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(255,255,255,0.25));
-  transition: transform 0.3s ease, filter 0.3s ease;
+body.dark-mode .footer .btn.btn-link:hover {
+    color: #ffffff !important;
 }
 
-.footer-logo:hover {
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 12px rgba(255,255,255,0.45));
+/* Social buttons */
+body.dark-mode .minimal-social {
+    background: #111111 !important;
+    color: #ffffff !important;
 }
 
-/* Light theme safety */
-body:not(.dark-mode) .footer-logo {
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
-}
-
-/* ================= Footer Branding ================= */
-.footer-branding {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.powered-text {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.powered-text a {
-  color: #fff;
-  border-bottom: 1px solid rgba(255,255,255,0.4);
-}
-
-.footer-logo {
-  height: 34px;
-  width: auto;
-  object-fit: contain;
-  transition: transform 0.3s ease;
-}
-
-.footer-logo:hover {
-  transform: scale(1.08);
-}
-
-/* 🌙 DARK MODE LOGO LOGIC */
-.logo-light {
-  display: none;
-}
-
-body.dark-mode .logo-dark {
-  display: inline-block;
-}
-
-body.dark-mode .logo-light {
-  display: none;
-}
-
-/* ☀️ LIGHT MODE LOGO LOGIC */
-body:not(.dark-mode) .logo-dark {
-  display: none;
-}
-
-body:not(.dark-mode) .logo-light {
-  display: inline-block;
-}
-
-/* Mobile alignment */
-@media (max-width: 768px) {
-  .footer-branding {
-    justify-content: center;
-    margin-top: 10px;
-  }
+body.dark-mode .minimal-social:hover {
+    background: #1a1a1a !important;
 }
 /* =========================================================
-   🧩 BASE44 BENTO BOX & FOOTER UTILITIES (LIGHT MODE)
+   TESTIMONIAL CAROUSEL INDICATORS (ROUNDED DOTS)
    ========================================================= */
 
-body:not(.dark-mode) .bento-card {
-  background: #ffffff !important;
-  border: 1px solid rgba(0,0,0,0.08) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
-  transition: all 0.3s ease !important;
-  padding: 32px !important;
+.carousel-indicators{
+    position: relative;
+    margin-top: 24px;
 }
 
-body:not(.dark-mode) .bento-card:hover {
-  border-color: rgba(0,0,0,0.15) !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
-  transform: translateY(-4px) !important;
+/* base dots */
+.carousel-indicators button{
+    width:8px !important;
+    height:8px !important;
+    padding:0 !important;
+    margin:0 6px !important;
+    border-radius:50% !important;
+    border:none !important;
+    background:#9ca3af !important;
+    opacity:0.5 !important;
+    transition:all .25s ease;
 }
 
-body:not(.dark-mode) .icon-wrapper {
-  width: 48px;
-  height: 48px;
-  background: #f1f5f9;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  color: #0f172a;
+/* active dot */
+.carousel-indicators button.active{
+    background:#111827 !important;
+    opacity:1 !important;
+    transform:scale(1.25);
 }
 
-body:not(.dark-mode) .footer-link {
-  color: #475569 !important;
-  padding-left: 0 !important;
+/* dark mode dots */
+body.dark-mode .carousel-indicators button{
+    background:rgba(255,255,255,0.35) !important;
 }
 
-body:not(.dark-mode) .footer-link:hover {
-  color: #0f172a !important;
-  transform: translateX(4px) !important;
-}
-
-body:not(.dark-mode) .minimal-social {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
-  border: none !important;
-}
-
-body:not(.dark-mode) .minimal-social:hover {
-  background: #e2e8f0 !important;
-  transform: translateY(-2px) !important;
-}
-/* =========================================================
-   🛠️ LIGHT MODE FIXES (NAVBAR OVERLAP & HERO BACKGROUND)
-   ========================================================= */
-
-/* 1. Fix the double-box issue in the Navbar menu */
-body:not(.dark-mode) .modern-navbar .menu {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 28px !important;
-}
-
-/* 2. Remove the dark background/images from the Hero section */
-body:not(.dark-mode) .carousel-item,
-body:not(.dark-mode) .slide-bg,
-body:not(.dark-mode) .carousel-inner {
-  background: #fafafa !important;
-  background-image: none !important; /* Removes the dark parallax image */
-}
-
-/* 3. Remove dark overlays from the original template */
-body:not(.dark-mode) .slide-bg::before,
-body:not(.dark-mode) .slide-bg::after,
-body:not(.dark-mode) .page-header::before,
-body:not(.dark-mode) .page-header::after {
-  display: none !important;
-  background: transparent !important;
-}
-
-/* 4. Push the Hero content down so the floating navbar doesn't cover it */
-body:not(.dark-mode) .carousel-item .position-absolute {
-  padding-top: 140px !important; 
-}
-
-/* 5. Ensure the navbar logo and icons are perfectly centered */
-body:not(.dark-mode) .modern-navbar {
-  align-items: center !important;
-  height: 70px !important; 
-}
-/* =========================================================
-   🛠️ UI/UX POLISH & BUG FIXES 
-   ========================================================= */
-
-/* 1. Prevent floating navbar from overlapping page content */
-body {
-  padding-top: 120px !important;
-}
-
-/* Keep the Home Page Hero Carousel full-screen behind the navbar */
-.carousel {
-  margin-top: -120px !important;
-}
-
-/* 2. Fix Invisible "Quick Links" in Light Mode Footer */
-body:not(.dark-mode) .footer .btn.btn-link {
-  color: #475569 !important;
-}
-
-body:not(.dark-mode) .footer .btn.btn-link::before {
-  color: #94a3b8 !important;
-}
-
-body:not(.dark-mode) .footer .btn.btn-link:hover {
-  color: #0f172a !important;
-  transform: translateX(4px) !important;
-}
-
-/* 3. Fix Invisible Logo in Light Mode Navbar */
-body:not(.dark-mode) .modern-navbar .logo-img {
-  /* This forces the white/light logo to pure black for high contrast */
-  filter: brightness(0) !important; 
-  opacity: 0.9;
-}
-/* =========================================================
-   🛠️ FINAL LAYOUT & BENTO GRID FIXES
-   ========================================================= */
-
-/* 1. Fix the blank 8th Card (Make it a dark accent card) */
-body:not(.dark-mode) .service-info {
-  background: #0f172a !important; /* Deep slate background */
-  border: none !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-body:not(.dark-mode) .service-info p {
-  color: #f8fafc !important; /* Crisp white text */
-  font-size: 1.1rem !important;
-  font-weight: 500 !important;
-  line-height: 1.6 !important;
-  margin: 0 !important;
-}
-
-/* 2. Fix Hero Content colliding with the Navbar */
-.carousel-item .container {
-  padding-top: 100px !important; /* Pushes the hero text down safely below the pill */
-}
-
-/* 3. Make sure the Bento Grid aligns perfectly */
-.service-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  align-items: stretch; /* Makes all cards equal height */
-}
-/* =========================================================
-   🚀 FORCE MODERN TYPOGRAPHY (OVERWRITE TEMPLATE)
-   ========================================================= */
-
-/* Force the modern Inter font on EVERY element inside the carousel */
-#carouselExampleControlsNoTouching,
-#carouselExampleControlsNoTouching *,
-.carousel-item,
-.carousel-item h1,
-.carousel-item p,
-.carousel-item .hero-title,
-.carousel-item .display-4 {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-}
-
-/* Make the Hero Title sleek and elegant */
-.carousel-item .hero-title,
-.carousel-item .display-4 {
-    font-weight: 700 !important;
-    letter-spacing: -0.04em !important; /* Tight spacing for the SaaS look */
-    line-height: 1.1 !important;
-    color: #0f172a !important;
-    text-transform: none !important; /* Prevents template from forcing ALL CAPS */
-}
-
-/* Upgrade the Description */
-.carousel-item .hero-description {
-    font-weight: 400 !important;
-    font-size: 1.15rem !important;
-    letter-spacing: -0.01em !important;
-    line-height: 1.7 !important;
-    color: #475569 !important;
-    max-width: 650px !important;
-    margin: 0 auto 32px auto !important;
-}
-
-/* Ensure the Tagline Pill is clean */
-.carousel-item .hero-tagline {
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
-    letter-spacing: 0.02em !important;
-}
-/* =========================================================
-   🛠️ SLIDE VISIBILITY FIX (PREVENT CUT-OFF BUTTONS)
-   ========================================================= */
-
-/* 1. Target ONLY the Hero Carousel, not the Testimonial Carousel */
-#carouselExampleControlsNoTouching .carousel-item {
-    min-height: 80vh !important; 
-    height: auto !important; 
-}
-
-/* 2. Fix the absolute positioning specifically for the Hero */
-#carouselExampleControlsNoTouching .carousel-item .position-absolute {
-    position: relative !important; 
-    padding-top: 180px !important; 
-    padding-bottom: 100px !important; 
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    min-height: 100% !important;
-}
-
-/* 3. Ensure the buttons stay visible and properly spaced */
-.hero-actions {
-    display: flex !important;
-    justify-content: center !important;
-    gap: 20px !important;
-    margin-top: 40px !important;
-    position: relative !important;
-    z-index: 10 !important; 
-}
-
-.hero-actions .bw-button {
-    padding: 16px 32px !important;
-    font-size: 16px !important;
-}
-
-/* 4. Force Testimonial Carousel to reset to its natural size */
-.testimonial-carousel .carousel-item,
-.testimonial-carousel .owl-item {
-    min-height: 0 !important;
-    height: auto !important;
-    padding-bottom: 20px !important;
-}
-/* =========================================================
-   🚀 HERO BUTTON CUT-OFF FIX
-   ========================================================= */
-
-/* 1. Release the rigid absolute positioning so the container can grow */
-body .carousel-item .position-absolute {
-    position: relative !important;
-    height: auto !important;
-    min-height: 85vh !important; /* Ensures it still looks full-screen */
-    padding-top: 180px !important; /* Safely clears the floating navbar */
-    padding-bottom: 80px !important; /* Guarantees space for the buttons */
-}
-
-/* 2. Allow the parent background containers to stretch */
-body .carousel-item, 
-body .slide-bg,
-body .owl-carousel-item {
-    height: auto !important;
-}
-
-/* 3. Make sure the buttons have enough breathing room */
-body .hero-actions {
-    margin-top: 40px !important;
-    padding-bottom: 20px !important;
-}
-/* =========================================================
-   🚀 HERO VERTICAL SPACING FIX
-   ========================================================= */
-
-body .carousel-item .position-absolute,
-#carouselExampleControlsNoTouching .carousel-item .position-absolute {
-    align-items: flex-start !important; /* Stops the text from sinking to the dead center */
-    padding-top: 140px !important; /* The exact, perfect distance just below the floating navbar */
-    padding-bottom: 60px !important; 
+/* dark mode active */
+body.dark-mode .carousel-indicators button.active{
+    background:#ffffff !important;
 }
