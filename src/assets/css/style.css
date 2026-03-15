@@ -788,3 +788,9 @@ body.dark-mode .carousel-indicators button.active{
     opacity: 1;
     pointer-events: auto;
 }
+/* Remove navbar offset for course detail pages */
+
+.course-details-wrapper{
+  margin-top: -120px;
+  padding-top: 20px;
+}

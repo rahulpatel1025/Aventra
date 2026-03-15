@@ -1,3 +1,7 @@
+/* Remove navbar offset for dashboard */
+.dashboard-layout{
+  margin-top:-120px;
+}
 /* ================= LAYOUT ================= */
 .dashboard-layout {
   display: flex;

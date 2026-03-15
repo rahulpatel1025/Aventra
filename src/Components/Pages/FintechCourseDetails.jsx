@@ -3,7 +3,7 @@ import "../../assets/css/course-details.css";
 
 export default function FintechCourseDetails() {
   return (
-    <div className="course-details-wrapper">
+    <div className="course-detail-page course-details-wrapper">
 
       <div className="course-details-container">
 
@@ -22,6 +22,7 @@ export default function FintechCourseDetails() {
             banking systems. It runs on APIs, digital payments, automation,
             compliance systems, and real-time analytics.
           </p>
+
           <p>
             Aventra Tech Solution’s FinTech Program bridges the gap between
             academic learning and real-world financial technology careers.
@@ -61,6 +62,7 @@ export default function FintechCourseDetails() {
             <li>Secure financial data processing</li>
             <li>Technology-driven financial scaling</li>
           </ul>
+
           <p>
             The program is self-paced with multiple pre-recorded modules and
             real-world workflow simulations.
@@ -70,15 +72,17 @@ export default function FintechCourseDetails() {
         {/* INTERNSHIP */}
         <section>
           <h2>🧪 Assessment & Internship Opportunity</h2>
-          <p>
-            Students must complete a final assessment.
-          </p>
+
+          <p>Students must complete a final assessment.</p>
+
           <p>
             Scoring <strong>75% or above</strong> makes you eligible for:
           </p>
+
           <div className="internship-box">
             💼 100% Stipend-Based Internship with Aventra Tech Solution
           </div>
+
           <ul>
             <li>Paid stipend</li>
             <li>Real project exposure</li>
@@ -89,10 +93,12 @@ export default function FintechCourseDetails() {
         {/* CERTIFICATION */}
         <section>
           <h2>🏆 Certification & Career Value</h2>
+
           <p>
             After successful completion, students receive an official FinTech
             Program Certification.
           </p>
+
           <ul>
             <li>FinTech startups</li>
             <li>Banks & NBFCs</li>
@@ -100,6 +106,7 @@ export default function FintechCourseDetails() {
             <li>Consulting & analytics firms</li>
           </ul>
         </section>
+
       </div>
     </div>
   );

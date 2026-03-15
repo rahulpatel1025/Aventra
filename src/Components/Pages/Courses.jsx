@@ -5,7 +5,12 @@ import axios from "axios";
 import DashboardCTA from "./DashboardCTA";
 import FinTechCourse from "../Course/FinTechCourse";
 
+/* NEW COMPONENT IMPORTS */
+import ODataCourseCard from "../Course/ODataCourseCard";
+import AIMLCourseCard from "../Course/AIMLCourseCard";
+
 export default function Courses() {
+
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +30,22 @@ export default function Courses() {
     fetchCourses();
   }, []);
 
+  // Hardcoded OData Course (same logic preserved)
+  const odataCourse = {
+    _id: "static-odata",
+    title: "OData Integration & API Development",
+    description:
+      "Learn to build, deploy, and consume highly scalable RESTful APIs using the industry-standard OData protocol.",
+    level: "ADVANCED",
+    price: 50000,
+    features: [
+      "Advanced RESTful API Design",
+      "OData V4 Protocol Deep-Dive",
+      "Secure Data Integration Workflows",
+      "Real-world Backend Routing",
+    ],
+  };
+
   return (
     <>
       <DashboardCTA />
@@ -33,12 +54,21 @@ export default function Courses() {
       <div className="container-xxl py-5 category">
         <div className="container">
 
-          <div className="text-center wow fadeInUp" style={{ marginBottom: "60px" }}>
-             {/* Modern Pill Badge */}
-            <span className="hero-tagline" style={{ display: "inline-block", marginBottom: "16px" }}>
-               Categories
+          <div
+            className="text-center wow fadeInUp"
+            style={{ marginBottom: "60px" }}
+          >
+            <span
+              className="hero-tagline"
+              style={{ display: "inline-block", marginBottom: "16px" }}
+            >
+              Categories
             </span>
-            <h1 className="hero-title" style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)"}}>
+
+            <h1
+              className="hero-title"
+              style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)" }}
+            >
               Courses Categories
             </h1>
           </div>
@@ -48,15 +78,44 @@ export default function Courses() {
             {/* LEFT CONTENT */}
             <div className="col-lg-7">
               <div className="what-you-get-card bento-card">
-                <h2 style={{ fontSize: "28px", letterSpacing: "-0.03em" }}>What You Get</h2>
+                <h2
+                  style={{
+                    fontSize: "28px",
+                    letterSpacing: "-0.03em",
+                  }}
+                >
+                  What You Get
+                </h2>
 
-                <h4 style={{ fontWeight: 500, color: "#475569", marginBottom: "24px" }}>
-                  Why students choose <span style={{ color: "#0f172a", fontWeight: 700 }}>Aventra Tech Solutions</span>
+                <h4
+                  style={{
+                    fontWeight: 500,
+                    color: "#475569",
+                    marginBottom: "24px",
+                  }}
+                >
+                  Why students choose
+                  <span
+                    style={{
+                      color: "#0f172a",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {" "}
+                    Aventra Tech Solutions
+                  </span>
                 </h4>
 
-                <p className="highlight" style={{ background: "rgba(15, 23, 42, 0.04)", borderLeftColor: "#0f172a", color: "#0f172a" }}>
-                   You’ll get <strong>100% paid internship after completion</strong> —
-                  else your money back.
+                <p
+                  className="highlight"
+                  style={{
+                    background: "rgba(15, 23, 42, 0.04)",
+                    borderLeftColor: "#0f172a",
+                    color: "#0f172a",
+                  }}
+                >
+                  You’ll get <strong>100% paid internship after completion</strong>
+                  — else your money back.
                 </p>
 
                 <ul style={{ color: "#475569" }}>
@@ -84,10 +143,14 @@ export default function Courses() {
                   style={{
                     maxHeight: "480px",
                     objectFit: "cover",
-                    transition: "transform 0.5s ease"
+                    transition: "transform 0.5s ease",
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
-                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.transform = "scale(1.03)")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
                 />
               </Link>
             </div>
@@ -100,56 +163,84 @@ export default function Courses() {
       <div className="container-xxl py-5">
         <div className="container">
 
-          <div className="text-center wow fadeInUp" style={{ marginBottom: "60px" }}>
-            <span className="hero-tagline" style={{ display: "inline-block", marginBottom: "16px" }}>
-               Programs
+          <div
+            className="text-center wow fadeInUp"
+            style={{ marginBottom: "60px" }}
+          >
+            <span
+              className="hero-tagline"
+              style={{ display: "inline-block", marginBottom: "16px" }}
+            >
+              Programs
             </span>
-            <h1 className="hero-title" style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)"}}>
+
+            <h1
+              className="hero-title"
+              style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)" }}
+            >
               Delivery-Focused Professional Programs
             </h1>
           </div>
 
-          {/* Loading */}
           {loading && (
             <p style={{ textAlign: "center", color: "#475569" }}>
               ⏳ Loading courses...
             </p>
           )}
 
-          {/* No courses */}
-          {!loading && courses.length === 0 && (
-            <p style={{ textAlign: "center", color: "#475569" }}>
-              No courses available yet.
-            </p>
-          )}
+          {/* COURSE GRID */}
+          <div className="row g-4 justify-content-center align-items-stretch">
 
-          {/* Dynamic Courses */}
-          <div style={{ display: "flex", justifyContent: "center", gap: "30px", flexWrap: "wrap" }}>
+            {/* ODATA COURSE */}
+            {!loading && (
+              <div className="col-lg-4 col-md-6 d-flex">
+                <ODataCourseCard course={odataCourse} />
+              </div>
+            )}
+
+            {/* FINTECH COURSES (BACKEND DATA) */}
             {!loading &&
               courses.map((course) => (
-                <FinTechCourse
-                  key={course._id}
-                  course={course}
-                />
+                <div className="col-lg-4 col-md-6 d-flex" key={course._id}>
+                  <FinTechCourse course={course} />
+                </div>
               ))}
-          </div>
 
+            {/* AI / ML COURSE */}
+            {!loading && (
+              <div className="col-lg-4 col-md-6 d-flex">
+                <AIMLCourseCard />
+              </div>
+            )}
+
+          </div>
         </div>
       </div>
 
       {/* 🚀 Coming Soon Section */}
       <div className="container-xxl py-5">
         <div className="container">
-          <div className="coming-soon-card bento-card" style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
+
+          <div
+            className="coming-soon-card bento-card"
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
+            }}
+          >
             <h2 style={{ letterSpacing: "-0.03em" }}>
               <span>🚀 Many more courses coming soon!</span>
             </h2>
+
             <p style={{ color: "#475569" }}>
-              We're continuously building high-quality courses to help you level up
-              your skills. Stay tuned for exciting new content, expert-led programs,
-              and career-focused learning paths.
+              We're continuously building high-quality courses to help you
+              level up your skills. Stay tuned for exciting new content,
+              expert-led programs, and career-focused learning paths.
             </p>
+
           </div>
+
         </div>
       </div>
     </>
