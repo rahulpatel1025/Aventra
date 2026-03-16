@@ -17,16 +17,17 @@ const quizRoutes = require("./routes/quizRoutes");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ================= TRUST PROXY (IMPORTANT FOR HOSTINGER) =================
 app.set("trust proxy", 1);
 
 // ================= RATE LIMIT =================
-app.use(
-  rateLimit({
-    windowMs: 60 * 1000,
-    max: 100,
-    message: "Too many requests, please try again later."
-  })
-);
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: "Too many requests, please try again later."
+});
+
+app.use(limiter);
 
 // ================= CORS =================
 app.use(
@@ -124,10 +125,10 @@ app.post("/api/user/sync", async (req, res) => {
 });
 
 // ================= API ROUTES =================
-app.use("/admin", requireAuth(), adminRoutes);
-app.use("/courses", courseRoutes);
-app.use("/quiz", quizRoutes);
-app.use("/payments", paymentRoutes);
+app.use("/api/admin", requireAuth(), adminRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/quiz", quizRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // ================= FEEDBACK =================
 const commentSchema = new mongoose.Schema(
@@ -147,7 +148,7 @@ const commentSchema = new mongoose.Schema(
 
 const Feedback = mongoose.model("Feedback", commentSchema);
 
-app.post("/feedback/new", async (req, res) => {
+app.post("/api/feedback/new", async (req, res) => {
   try {
     const feedback = new Feedback(req.body);
     await feedback.save();
@@ -157,12 +158,12 @@ app.post("/feedback/new", async (req, res) => {
   }
 });
 
-app.get("/feedback", async (req, res) => {
+app.get("/api/feedback", async (req, res) => {
   const data = await Feedback.find({});
   res.json(data);
 });
 
-app.delete("/feedback/:id", async (req, res) => {
+app.delete("/api/feedback/:id", async (req, res) => {
   await Feedback.findByIdAndDelete(req.params.id);
   res.json({ message: "Deleted" });
 });
@@ -180,6 +181,10 @@ mongoose
 app.use(express.static(path.join(__dirname, "../dist")));
 
 app.get("*", (req, res) => {
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(404).json({ error: "API route not found" });
+  }
+
   res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
