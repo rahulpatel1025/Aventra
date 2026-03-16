@@ -5,8 +5,10 @@ const { requireAuth } = require("@clerk/express");
 
 router.post("/verify", requireAuth(), async (req, res) => {
   try {
-    // 🔥 SECURITY FIX: Get userId directly from Clerk's verified token
-    const { userId } = req.auth(); 
+    // Safely extract Clerk auth data
+    const authData = typeof req.auth === "function" ? req.auth() : req.auth;
+    const userId = authData?.userId;
+
     const { courseId, amount, paymentProvider, paymentId } = req.body;
 
     if (!userId || !courseId || !paymentProvider || !paymentId) {
@@ -25,6 +27,7 @@ router.post("/verify", requireAuth(), async (req, res) => {
       message: "Purchase completed successfully",
       purchase,
     });
+
   } catch (err) {
     console.error("Payment Verification Error:", err);
     res.status(500).json({ message: err.message });
