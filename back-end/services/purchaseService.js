@@ -11,7 +11,7 @@ async function completePurchase({
   paymentId,
 }) {
 
-  // 1️⃣ Validate courseId format first
+  // 1️⃣ Validate courseId format
   if (!mongoose.Types.ObjectId.isValid(courseId)) {
     throw new Error("Invalid course ID");
   }
@@ -24,7 +24,6 @@ async function completePurchase({
 
   // 3️⃣ Verify user exists
   const user = await User.findOne({ clerkId: userId });
-
   if (!user) {
     throw new Error("User not found in database");
   }
@@ -32,7 +31,7 @@ async function completePurchase({
   // 4️⃣ Prevent duplicate purchase
   const existingPurchase = await Purchase.findOne({
     userId,
-    courseId: new mongoose.Types.ObjectId(courseId),
+    courseId: course._id,
   });
 
   if (existingPurchase) {
@@ -42,24 +41,27 @@ async function completePurchase({
   // 5️⃣ Create purchase record
   const purchase = await Purchase.create({
     userId,
-    courseId: new mongoose.Types.ObjectId(courseId),
+    courseId: course._id,
     amount,
     paymentProvider,
     paymentId,
     status: "completed",
   });
 
-  // 6️⃣ Update user dashboard
-  await User.findOneAndUpdate(
-    { clerkId: userId },
-    {
-      $addToSet: {
-        purchasedCourses: new mongoose.Types.ObjectId(courseId),
+  // 6️⃣ Update user dashboard safely
+  try {
+    await User.findOneAndUpdate(
+      { clerkId: userId },
+      {
+        $addToSet: { purchasedCourses: course._id },
+        $set: { hasPurchased: true },
+        $inc: { coursesEnrolled: 1 },
       },
-      $set: { hasPurchased: true },
-      $inc: { coursesEnrolled: 1 },
-    }
-  );
+      { new: true }
+    );
+  } catch (err) {
+    console.error("User update failed:", err);
+  }
 
   return purchase;
 }
