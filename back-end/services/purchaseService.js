@@ -1,55 +1,64 @@
+const mongoose = require("mongoose");
 const Purchase = require("../models/Purchase");
 const User = require("../models/User");
 const Course = require("../models/Course");
 
 async function completePurchase({
-  userId, // Note: This is the Clerk ID (e.g., user_2...)
+  userId,
   courseId,
   amount,
   paymentProvider,
   paymentId,
 }) {
-  // 1️⃣ Validate course exists
+
+  // 1️⃣ Validate courseId format first
+  if (!mongoose.Types.ObjectId.isValid(courseId)) {
+    throw new Error("Invalid course ID");
+  }
+
+  // 2️⃣ Verify course exists
   const course = await Course.findById(courseId);
   if (!course) {
     throw new Error("Course not found");
   }
 
-  // 2️⃣ Verify user exists in DB using clerkId
+  // 3️⃣ Verify user exists
   const user = await User.findOne({ clerkId: userId });
+
   if (!user) {
     throw new Error("User not found in database");
   }
 
-  // 3️⃣ Prevent duplicate purchase
-  const existing = await Purchase.findOne({
-    userId, // Storing the Clerk ID
-    courseId,
+  // 4️⃣ Prevent duplicate purchase
+  const existingPurchase = await Purchase.findOne({
+    userId,
+    courseId: new mongoose.Types.ObjectId(courseId),
   });
 
-  if (existing) {
+  if (existingPurchase) {
     throw new Error("Course already purchased");
   }
 
-  // 4️⃣ Create purchase record
+  // 5️⃣ Create purchase record
   const purchase = await Purchase.create({
     userId,
-    courseId,
+    courseId: new mongoose.Types.ObjectId(courseId),
     amount,
     paymentProvider,
     paymentId,
     status: "completed",
   });
 
-  // 5️⃣ Attach course & unlock dashboard features for the user
+  // 6️⃣ Update user dashboard
   await User.findOneAndUpdate(
-    { clerkId: userId }, // Find by Clerk ID, NOT Mongo _id
+    { clerkId: userId },
     {
-      $addToSet: { purchasedCourses: courseId }, // Adds course (prevents duplicates)
-      $set: { hasPurchased: true },              // Unlocks the FinTech Quiz!
-      $inc: { coursesEnrolled: 1 }               // Updates the stats counter
-    },
-    { new: true }
+      $addToSet: {
+        purchasedCourses: new mongoose.Types.ObjectId(courseId),
+      },
+      $set: { hasPurchased: true },
+      $inc: { coursesEnrolled: 1 },
+    }
   );
 
   return purchase;
