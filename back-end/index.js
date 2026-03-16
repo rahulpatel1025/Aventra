@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const path = require("path");
 require("dotenv").config();
 
 const { clerkMiddleware, requireAuth } = require("@clerk/express");
@@ -14,45 +15,50 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 
 const app = express();
-const path = require("path");
-
-app.use(express.static(path.join(__dirname, "../dist")));
 const PORT = process.env.PORT || 3000;
 
 // ================= RATE LIMIT =================
 app.use(
   rateLimit({
-    windowMs: 1 * 60 * 1000,
+    windowMs: 60 * 1000,
     max: 100,
-    message: "Too many requests, please try again later.",
+    message: "Too many requests, please try again later."
+  })
+);
+
+// ================= CORS =================
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://aventratechsolution.com",
+      "https://www.aventratechsolution.com"
+    ],
+    credentials: true
   })
 );
 
 // ================= BASIC MIDDLEWARE =================
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ================= CLERK AUTH =================
 app.use(
   clerkMiddleware({
-    // Smart fallback: Checks standard naming first, then VITE naming
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY,
-    secretKey: process.env.CLERK_SECRET_KEY || process.env.VITE_CLERK_SECRET_KEY,
+    publishableKey:
+      process.env.CLERK_PUBLISHABLE_KEY ||
+      process.env.VITE_CLERK_PUBLISHABLE_KEY,
+    secretKey:
+      process.env.CLERK_SECRET_KEY ||
+      process.env.VITE_CLERK_SECRET_KEY
   })
 );
 
 // ================= ATTACH DB USER =================
 app.use(async (req, res, next) => {
   try {
-    // Safely parse auth regardless of Clerk version to stop warnings
     let authUserId = null;
+
     if (req.auth) {
       const authData = typeof req.auth === "function" ? req.auth() : req.auth;
       authUserId = authData?.userId;
@@ -61,9 +67,11 @@ app.use(async (req, res, next) => {
     if (!authUserId) return next();
 
     const dbUser = await User.findOne({ clerkId: authUserId });
+
     if (dbUser) {
       req.user = dbUser;
     }
+
     next();
   } catch (err) {
     console.error("User attach error:", err);
@@ -71,82 +79,71 @@ app.use(async (req, res, next) => {
   }
 });
 
-// ================= EXPLICIT USER SYNC ROUTE =================
+// ================= USER SYNC =================
 app.post("/api/user/sync", async (req, res) => {
   try {
     const { clerkId, fullName, email, profileImage } = req.body;
 
-    // Safely parse auth
     let authUserId = null;
+
     if (req.auth) {
       const authData = typeof req.auth === "function" ? req.auth() : req.auth;
       authUserId = authData?.userId;
     }
 
-    // DEVELOPMENT FALLBACK: 
-    // If strict token validation fails (due to missing secret key), fallback to the body ID so you aren't blocked.
     const validId = authUserId || clerkId;
 
     if (!validId) {
-      return res.status(401).json({ error: "Unauthorized: Missing token and Clerk ID" });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     let user = await User.findOne({ clerkId: validId });
 
     if (!user) {
       const userCount = await User.countDocuments();
+
       user = await User.create({
         clerkId: validId,
         fullName,
         email,
         profileImage,
-        // First user ever created becomes superadmin, everyone else is student
-        role: userCount === 0 ? "superadmin" : "student", 
+        role: userCount === 0 ? "superadmin" : "student"
       });
-      console.log("✅ New user synced to MongoDB:", user.email);
+
+      console.log("New user synced:", user.email);
     }
 
     res.json({ message: "User synced successfully", user });
+
   } catch (error) {
     console.error("User sync error:", error);
     res.status(500).json({ error: "Server error during sync" });
   }
 });
 
-// ================= ROUTES =================
+// ================= API ROUTES =================
 app.use("/admin", requireAuth(), adminRoutes);
 app.use("/courses", courseRoutes);
 app.use("/quiz", quizRoutes);
 app.use("/payments", paymentRoutes);
 
-// ================= MONGODB =================
-mongoose
-  .connect(process.env.DB_URL)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err);
-    process.exit(1);
-  });
-
-// ================= FEEDBACK SCHEMA & ROUTES =================
+// ================= FEEDBACK =================
 const commentSchema = new mongoose.Schema(
   {
     name: { type: String, index: true },
     image: {
       type: String,
-      default: "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp",
-      set: (v) => v === "" ? "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" : v,
+      default:
+        "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
     },
     rating: { type: Number, index: true },
     comment: String,
-    date: { type: Date, default: Date.now, index: true },
+    date: { type: Date, default: Date.now }
   },
   { timestamps: true }
 );
 
 const Feedback = mongoose.model("Feedback", commentSchema);
-
-app.get("/", (req, res) => res.send("Backend running 🚀"));
 
 app.post("/feedback/new", async (req, res) => {
   try {
@@ -168,11 +165,23 @@ app.delete("/feedback/:id", async (req, res) => {
   res.json({ message: "Deleted" });
 });
 
+// ================= MONGODB =================
+mongoose
+  .connect(process.env.DB_URL)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => {
+    console.error("MongoDB connection failed:", err);
+    process.exit(1);
+  });
+
+// ================= SERVE FRONTEND =================
+app.use(express.static(path.join(__dirname, "../dist")));
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
 // ================= SERVER =================
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
