@@ -5,13 +5,18 @@ const { requireAuth } = require("@clerk/express");
 
 router.post("/verify", requireAuth(), async (req, res) => {
   try {
-    // Safely extract Clerk auth data
+
+    // Extract Clerk auth safely
     const authData = typeof req.auth === "function" ? req.auth() : req.auth;
     const userId = authData?.userId;
 
     const { courseId, amount, paymentProvider, paymentId } = req.body;
 
-    if (!userId || !courseId || !paymentProvider || !paymentId) {
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized user" });
+    }
+
+    if (!courseId || !paymentProvider || !paymentId) {
       return res.status(400).json({ message: "Missing payment data" });
     }
 
@@ -23,14 +28,30 @@ router.post("/verify", requireAuth(), async (req, res) => {
       paymentId,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Purchase completed successfully",
       purchase,
     });
 
   } catch (err) {
+
+    // Handle duplicate purchase properly
+    if (err.message === "Course already purchased") {
+      return res.status(409).json({ message: err.message });
+    }
+
+    // Handle missing course
+    if (err.message === "Course not found") {
+      return res.status(404).json({ message: err.message });
+    }
+
+    // Handle missing user
+    if (err.message === "User not found in database") {
+      return res.status(404).json({ message: err.message });
+    }
+
     console.error("Payment Verification Error:", err);
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: "Payment verification failed" });
   }
 });
 
