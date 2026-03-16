@@ -63,7 +63,7 @@ function App() {
 
         // ✅ Use POST and hit the sync route we built in the backend
         await axios.post(
-          "http://localhost:3000/api/user/sync",
+          "/api/user/sync",
           {
             clerkId: user.id,
             fullName: user.fullName,
