@@ -49,7 +49,7 @@ function StripePaymentForm({ amount, courseId }) {
 
       // 3️⃣ Send the payload dynamically
       const response = await axios.post(
-        "http://localhost:3000/payments/verify",
+        "/api/payments/verify",
         {
           courseId: courseId, // 🔥 Dynamically fetching the course ID!
           amount: amount,

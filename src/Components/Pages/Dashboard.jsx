@@ -29,7 +29,7 @@ export default function Dashboard() {
         const token = await getToken();
         
         const res = await axios.post(
-          "http://localhost:3000/api/user/sync",
+          "/api/user/sync",
           {
             clerkId: user.id,
             fullName: user.fullName,
