@@ -37,14 +37,16 @@ export default function Navbar() {
     <><nav className={`modern-navbar ${menuOpen ? "active" : ""}`}>
 
       {/* Logo */}
-      <NavLink to="/" className="logo">
-        <img
-          src="/img/aventra-logo.png"
-          alt="Aventra Logo"
-          className="logo-img"
-          style={{ height: "24px" }} // Keeping logo tight for the pill shape
-        />
-      </NavLink>
+      {/* Logo */}
+<NavLink to="/" className="logo">
+  <img
+    // Dynamically swap the image source based on the theme
+    src={darkMode ? "/img/aventra-logo.png" : "/img/aventra-logo.png"}
+    alt="Aventra Logo"
+    className="logo-img"
+    style={{ height: "24px" }} 
+  />
+</NavLink>
 
       {/* 🍔 Mobile Toggle Button */}
       <button

@@ -193,10 +193,10 @@ button, .btn, a { min-height: 44px; }
     color: #0f172a !important;
 }
 
-.modern-navbar .logo-img {
+/* .modern-navbar .logo-img {
     filter: brightness(0) !important; 
     opacity: 0.9;
-}
+} */
 
 /* ================= HERO & CAROUSEL SECTION ================= */
 
