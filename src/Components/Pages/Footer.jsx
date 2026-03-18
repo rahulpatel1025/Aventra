@@ -37,7 +37,7 @@ export default function Footer() {
 
               <p className="mb-3" style={{ color: "#475569" }}>
                 <i className="fa fa-envelope me-3" style={{ color: "#0f172a" }} />
-                aventra@gmail.com
+                support@aventratechsolution.com
               </p>
 
               <div className="d-flex pt-3 gap-2">
