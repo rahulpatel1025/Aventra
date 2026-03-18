@@ -46,7 +46,7 @@ export default function Footer() {
               <div className="d-flex pt-3 gap-2">
                 <a
                   className="btn btn-social minimal-social"
-                  href="https://www.instagram.com/o_orahul_p/"
+                  href="https://www.instagram.com/aventratechsolutions?igsh=MWZ1N211ZXR6Nmx2ZA%3D%3D"
                   target="_blank"
                   rel="noreferrer"
                 >
