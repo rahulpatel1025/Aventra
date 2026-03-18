@@ -32,7 +32,7 @@ export default function Footer() {
 
               <p className="mb-3" style={{ color: "#475569" }}>
                 <i className="fa fa-phone-alt me-3" style={{ color: "#0f172a" }} />
-                +091 834-766-9000
+                +91 834-766-9000
               </p>
 
               <p className="mb-3" style={{ color: "#475569" }}>

@@ -105,7 +105,7 @@ export default function Contact() {
                 </div>
                 <div className="ms-3">
                   <h5 className="text-primary">Email</h5>
-                  <p className="mb-0">aventratech1@gmail.com</p>
+                  <p className="mb-0">support@aventratechsolution.com</p>
                 </div>
               </div>
             </div>
