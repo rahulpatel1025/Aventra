@@ -46,6 +46,9 @@ import CheckoutDetails from "./Components/Pages/CheckoutDetails";
 import CheckoutReferral from "./Components/Pages/CheckoutReferral";
 import CheckoutPayment from "./Components/Pages/CheckoutPayment";
 import FintechCourseDetails from "./Components/Pages/FintechCourseDetails";
+import PrivacyPolicy from "./Components/Pages/PrivacyPolcy";
+import Terms from "./Components/Pages/Terms";
+import RefundPolicy from "./Components/Pages/RefundPolicy";
 
 function App() {
   // ✅ Extract isSignedIn as well to ensure they are fully logged in
