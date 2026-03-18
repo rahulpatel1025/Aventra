@@ -16,9 +16,6 @@ export default function Footer() {
             {/* ✅ Quick Links */}
             <div className="col-lg-4 col-md-6">
               <h4 className="mb-4" style={{ fontWeight: 700, letterSpacing: "-0.02em", color: "#0f172a" }}>Quick Links</h4>
-
-              <a className="btn btn-link footer-link" href="#">About Us</a>
-              <a className="btn btn-link footer-link" href="#">Contact Us</a>
               <Link className="btn btn-link footer-link" to="/privacy-policy">Privacy Policy </Link>
               <Link className="btn btn-link footer-link" to="/terms">Terms &amp; Condition</Link>
               <Link className="btn btn-link footer-link" to="/refund-policy">Refund policy</Link>
