@@ -138,6 +138,9 @@ function App() {
         <Route path="/feedback" element={<FeedbackAll />} />
 
         <Route path="/courses/:slug" element={<FintechCourseDetails />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
 
         {/* CHECKOUT */}
         <Route path="/checkout/details" element={<CheckoutDetails />} />
