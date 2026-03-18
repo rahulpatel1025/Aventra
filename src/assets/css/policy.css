@@ -1,6 +1,6 @@
 .policy-container {
   min-height: 100vh;
-  padding: 120px 20px 60px;
+  padding: 20px 20px 60px;
   background: var(--bg);
   color: var(--text);
   display: flex;
@@ -45,8 +45,35 @@
 
 .policy-section ul {
   padding-left: 20px;
+  margin-bottom: 10px; /* Ensures consistent spacing after lists */
 }
 
 .policy-section li {
   margin-bottom: 6px;
+}
+
+/* Base styling for links inside the policy (like the support email) */
+.policy-section a {
+  color: #007bff; /* Feel free to swap this with a var(--primary) color */
+  text-decoration: none;
+  transition: text-decoration 0.2s ease;
+}
+
+.policy-section a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .policy-container {
+    padding: 100px 15px 40px; /* slightly less top padding for mobile navigation */
+  }
+
+  .policy-content {
+    padding: 24px; /* Gives text more breathing room on small screens */
+  }
+
+  .policy-title {
+    font-size: 26px; /* Scales down the main title nicely */
+  }
 }
