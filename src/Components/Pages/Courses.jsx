@@ -16,19 +16,23 @@ export default function Courses() {
 
   // Fetch published courses from backend
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await axios.get("/api/courses");
-        setCourses(res.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch courses:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCourses = async () => {
+    try {
+      const res = await axios.get("/api/courses");
 
-    fetchCourses();
-  }, []);
+      // Handle both array response and wrapped object response
+      const data = res.data;
+      setCourses(Array.isArray(data) ? data : data.courses || data.data || []);
+    } catch (err) {
+      console.error("❌ Failed to fetch courses:", err);
+      setCourses([]); // Ensure it stays an array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCourses();
+}, []);
 
   // Hardcoded OData Course (same logic preserved)
   const odataCourse = {
