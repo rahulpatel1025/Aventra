@@ -93,7 +93,7 @@ export default function Navbar() {
         {/* If User is NOT logged in */}
         <SignedOut>
           <SignInButton mode="modal">
-            <button className="primary-btn">Join</button>
+            <button className="primary-btn">Login</button>
           </SignInButton>
         </SignedOut>
 
