@@ -220,6 +220,7 @@ export default function Dashboard() {
         </div>
 
         <nav className="sidebar-menu">
+          <a onClick={() => navigate("/")}>🏠 Home</a>
           <a className="active">🏠 Dashboard</a>
           <a onClick={() => navigate("/my-courses")}>📚 My Courses</a>
           <a>📊 Progress</a>
