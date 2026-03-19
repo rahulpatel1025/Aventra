@@ -1,6 +1,6 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import { useUser, useAuth } from "@clerk/clerk-react"; // ✅ Added useAuth
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import axios from "axios";
 import ScrollToTop from "./Components/Pages/ScrollToTop";
@@ -16,6 +16,8 @@ import ErrorPage from "./Components/Pages/ErrorPage";
 import SignUp from "./Components/Pages/Register";
 import Profile from "./Components/Pages/Profile";
 import Dashboard from "./Components/Pages/Dashboard";
+import MyCourses from "./Components/Pages/MyCourses";
+import CourseDetail from "./Components/Pages/CourseDetail";
 import FeedbackAll from "./Components/Pages/FeedbackAll";
 
 // Courses
@@ -51,36 +53,26 @@ import Terms from "./Components/Pages/Terms";
 import RefundPolicy from "./Components/Pages/RefundPolicy";
 
 function App() {
-  // ✅ Extract isSignedIn as well to ensure they are fully logged in
   const { user, isLoaded, isSignedIn } = useUser();
-  const { getToken } = useAuth(); // ✅ Get the token function from useAuth
+  const { getToken } = useAuth();
 
-  // 🔥 GLOBAL AUTO-SYNC USING BACKEND
+  // Global auto-sync
   useEffect(() => {
-    // Only run if Clerk is loaded and the user is actually signed in
     if (!isLoaded || !isSignedIn || !user) return;
 
     const triggerAutoSync = async () => {
       try {
-        const token = await getToken(); // ✅ Correct token extraction
-
-        // ✅ Use POST and hit the sync route we built in the backend
+        const token = await getToken();
         await axios.post(
           "/api/user/sync",
           {
             clerkId: user.id,
             fullName: user.fullName,
-            // Fallback for Apple ID "Hide My Email" users
             email: user.primaryEmailAddress?.emailAddress || "hidden-apple-email@apple.com",
             profileImage: user.imageUrl,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-
         console.log("✅ User auto-synced successfully");
       } catch (err) {
         console.error("❌ Auto-sync failed:", err);
@@ -104,6 +96,10 @@ function App() {
         <Route path="/contact" element={<Contact1 />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
+        {/* ── NEW DASHBOARD ROUTES ── */}
+        <Route path="/my-courses" element={<MyCourses />} />
+        <Route path="/my-courses/:courseId" element={<CourseDetail />} />
+
         {/* AUTH / PROFILE */}
         <Route path="/register" element={<SignUp />} />
         <Route path="/profile" element={<Profile />} />
@@ -119,7 +115,6 @@ function App() {
         <Route path="/courses/mern/express" element={<Express />} />
         <Route path="/courses/mern/react" element={<Reactjs />} />
         <Route path="/courses/mern/mongodb" element={<Mongodb />} />
-
         <Route path="/courses/fullstack" element={<Fullstack />} />
         <Route path="/courses/fullstack/sql" element={<Mysql />} />
         <Route path="/courses/fullstack/nodejs" element={<Nodejs />} />
@@ -131,10 +126,10 @@ function App() {
         <Route path="/courses/fullstack/css" element={<Css />} />
 
         {/* PROGRAMMING */}
-        <Route path="/cources/programming" element={<Programming />} />
-        <Route path="/cources/programming/java" element={<Javaprog />} />
-        <Route path="/cources/programming/advJava" element={<Advjava />} />
-        <Route path="/cources/programming/javascript" element={<Javascript />} />
+        <Route path="/courses/programming" element={<Programming />} />
+        <Route path="/courses/programming/java" element={<Javaprog />} />
+        <Route path="/courses/programming/advJava" element={<Advjava />} />
+        <Route path="/courses/programming/javascript" element={<Javascript />} />
 
         {/* LIBRARY & FEEDBACK */}
         <Route path="/library" element={<ShowBook />} />
@@ -154,7 +149,6 @@ function App() {
         <Route path="*" element={<ErrorPage />} />
       </Routes>
 
-      {/* GLOBAL CHATBOT */}
       <BotpressChatbot />
     </>
   );

@@ -15,146 +15,91 @@ export default function Dashboard() {
   const [dbUser, setDbUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [justEnrolled, setJustEnrolled] = useState(false);
+  const [purchasedCourses, setPurchasedCourses] = useState([]);
+  const [isDark, setIsDark] = useState(document.body.classList.contains("dark-mode"));
+
+  // Auto-dismiss enrollment banner
   useEffect(() => {
-  if (justEnrolled) {
-    const timer = setTimeout(() => setJustEnrolled(false), 5000);
-    return () => clearTimeout(timer);
-  }
-}, [justEnrolled]);
+    if (justEnrolled) {
+      const t = setTimeout(() => setJustEnrolled(false), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [justEnrolled]);
 
   useEffect(() => {
     if (!isLoaded) return;
+    if (!isSignedIn) { setLoading(false); return; }
+    if (location.state?.enrolled) setJustEnrolled(true);
 
-    if (!isSignedIn) {
-      setLoading(false);
-      return;
-    }
-
-    // Check if we were redirected here after a successful payment
-    if (location.state?.enrolled) {
-      setJustEnrolled(true);
-    }
-
-    const syncAndGetUser = async () => {
+    const init = async () => {
       try {
         const token = await getToken();
 
-        // Step 1: Sync user (creates if new, no-op if exists)
-        await axios.post(
-          "/api/user/sync",
-          {
-            clerkId: user.id,
-            fullName: user.fullName,
-            email: user.primaryEmailAddress?.emailAddress,
-            profileImage: user.imageUrl,
-          },
+        // Sync user
+        await axios.post("/api/user/sync",
+          { clerkId: user.id, fullName: user.fullName, email: user.primaryEmailAddress?.emailAddress, profileImage: user.imageUrl },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Step 2: Always fetch FRESH user data from DB
-        // This ensures hasPurchased + purchasedCourses are up to date
-        // especially right after a payment redirect
-        const freshRes = await axios.get("/api/user/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Fetch fresh user
+        const userRes = await axios.get("/api/user/me", { headers: { Authorization: `Bearer ${token}` } });
+        setDbUser(userRes.data);
 
-        const fetchedUser = freshRes.data;
-        setDbUser(fetchedUser);
-        console.log("✅ Fetched User from DB:", fetchedUser);
+        // Fetch purchased courses
+        const coursesRes = await axios.get("/api/courses/my-courses", { headers: { Authorization: `Bearer ${token}` } });
+        const data = coursesRes.data;
+        setPurchasedCourses(Array.isArray(data) ? data : data.courses || []);
 
       } catch (err) {
-        console.error("Failed to fetch user data:", err);
+        console.error("Dashboard init error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    syncAndGetUser();
+    init();
   }, [user, isLoaded, isSignedIn, getToken, location.state]);
 
+  const toggleTheme = (e) => {
+    document.body.classList.toggle("dark-mode");
+    setIsDark(document.body.classList.contains("dark-mode"));
+    e.currentTarget.classList.toggle("active");
+  };
+
   if (!isLoaded || loading) return (
-    <div style={{ padding: 40, textAlign: "center", fontSize: "18px" }}>
+    <div style={{ padding: 60, textAlign: "center", fontSize: 16, color: "#64748b" }}>
       Loading Dashboard...
     </div>
   );
 
   if (!isSignedIn) return (
-    <div style={{ padding: 40, textAlign: "center", color: "red" }}>
+    <div style={{ padding: 60, textAlign: "center", color: "#ef4444" }}>
       Please log in to access the dashboard.
     </div>
   );
 
   if (!dbUser) return (
-    <div style={{ padding: 40, textAlign: "center", color: "red" }}>
-      Error loading user profile. Please refresh the page.
+    <div style={{ padding: 60, textAlign: "center", color: "#ef4444" }}>
+      Error loading profile. Please refresh.
     </div>
   );
 
-  // 🔴 SECURITY CHECK: RESTRICT ACCESS IF NOT PURCHASED AND NOT SUPERADMIN
+  // Access gate
   if (!dbUser.hasPurchased && dbUser.role !== "superadmin") {
     return (
-      <div
-        className="dashboard-layout"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          backgroundColor: "#020617",
-        }}
-      >
-        <div
-          className="glass-card animated center"
-          style={{
-            maxWidth: "450px",
-            textAlign: "center",
-            padding: "50px 30px",
-            border: "1px solid #1e293b",
-            borderRadius: "16px",
-            background: "#0f172a",
-          }}
-        >
-          <div style={{ fontSize: "50px", marginBottom: "15px" }}>🔒</div>
-          <h2 style={{ color: "#ef4444", marginBottom: "15px" }}>Access Restricted</h2>
-          <p
-            style={{
-              marginBottom: "30px",
-              fontSize: "16px",
-              color: "#94a3b8",
-              lineHeight: "1.6",
-            }}
-          >
-            Your dashboard is currently locked. You need to enroll in at least
-            one course to unlock your student dashboard, access the FinTech
-            Quiz, and track your progress.
+      <div className="dashboard-locked">
+        <div className="locked-card">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
+          <h2>Access Restricted</h2>
+          <p>
+            Your dashboard is locked. Enroll in at least one course to unlock
+            your student dashboard, quiz, and progress tracking.
           </p>
-          <button
-            onClick={() => navigate("/courses")}
-            style={{
-              padding: "12px 30px",
-              background: "#38bdf8",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              fontSize: "16px",
-              marginBottom: "20px",
-            }}
-          >
+          <button className="locked-btn" onClick={() => navigate("/courses")}>
             Explore Courses
           </button>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "10px",
-              color: "#64748b",
-              marginTop: "10px",
-            }}
-          >
-            <span>Sign out or switch account:</span>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 20, color: "#64748b", fontSize: 13 }}>
+            <span>Switch account:</span>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
@@ -162,169 +107,188 @@ export default function Dashboard() {
     );
   }
 
-  // ✅ Check if user purchased at least one course or is a superadmin
-  const hasPurchasedCourse =
-    dbUser.role === "superadmin" ||
-    (dbUser.purchasedCourses && dbUser.purchasedCourses.length > 0);
-
-  // ✅ Calculate real quiz progress based on the 24 questions
+  const hasPurchasedCourse = dbUser.role === "superadmin" || purchasedCourses.length > 0;
   const totalQuizQuestions = 24;
-  const progress = dbUser.quizScore
-    ? Math.round((dbUser.quizScore / totalQuizQuestions) * 100)
-    : 0;
+  const quizProgress = dbUser.quizScore ? Math.round((dbUser.quizScore / totalQuizQuestions) * 100) : 0;
 
   return (
     <div className="dashboard-layout">
 
-      {/* ✅ Enrollment success banner — shown only right after payment redirect */}
+      {/* ── Enrollment success banner ── */}
       {justEnrolled && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#10b981",
-            color: "#fff",
-            padding: "14px 28px",
-            borderRadius: "10px",
-            fontWeight: 600,
-            fontSize: "15px",
-            zIndex: 9999,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-            animation: "fadeIn 0.3s ease",
-            cursor: "pointer",
-          }}
-          onClick={() => setJustEnrolled(false)}
-        >
+        <div style={{
+          position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+          background: "#10b981", color: "#fff", padding: "14px 28px", borderRadius: 10,
+          fontWeight: 600, fontSize: 15, zIndex: 9999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+          cursor: "pointer",
+        }} onClick={() => setJustEnrolled(false)}>
           🎉 Enrollment successful! Check your email for your invoice.
         </div>
       )}
 
-      {/* SIDEBAR */}
+      {/* ── SIDEBAR ── */}
       <aside className="dashboard-sidebar">
         <div className="profile-card">
           <UserButton afterSignOutUrl="/" />
-          <h4>{dbUser.fullName}</h4>
+          <h4>{dbUser.fullName || "Student"}</h4>
           <p>{dbUser.email}</p>
-          <span
-            style={{
-              fontSize: "12px",
-              color: "#38bdf8",
-              textTransform: "uppercase",
-              fontWeight: "bold",
-            }}
-          >
-            {dbUser.role === "superadmin" ? "Superadmin" : "Student"}
+          <span style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            {dbUser.role === "superadmin" ? "⚡ Superadmin" : "🎓 Student"}
           </span>
         </div>
 
         <nav className="sidebar-menu">
           <a onClick={() => navigate("/")}>🏠 Home</a>
-          <a className="active">🏠 Dashboard</a>
+          <a className="active">📊 Dashboard</a>
           <a onClick={() => navigate("/my-courses")}>📚 My Courses</a>
-          <a>📊 Progress</a>
 
-          {/* ✅ Show quiz only if purchased or superadmin */}
           {hasPurchasedCourse && (
             <a onClick={() => navigate("/quiz/fintech")}>🧠 FinTech Quiz</a>
           )}
 
           <a>🎓 Certificates</a>
-          <a>⚙ Settings</a>
+          <a>⚙️ Settings</a>
         </nav>
       </aside>
 
-      {/* MAIN */}
+      {/* ── MAIN ── */}
       <main className="dashboard-main">
-        {/* HEADER */}
+
+        {/* Header */}
         <div className="dashboard-header">
           <h1>Student Dashboard</h1>
-
-          <button
-            className="theme-toggle"
-            onClick={(e) => {
-              document.body.classList.toggle("dark-mode");
-              e.currentTarget.classList.toggle("active");
-            }}
-          >
+          <button className="theme-toggle" onClick={toggleTheme}>
             <span className="toggle-icon"></span>
           </button>
         </div>
 
-        {/* STATS */}
+        {/* Welcome banner */}
+        <div className="dashboard-welcome">
+          <div>
+            <h2>Welcome back, {dbUser.fullName?.split(" ")[0] || "Student"}! 👋</h2>
+            <p>Keep up the great work. Your next milestone is just ahead.</p>
+          </div>
+          {purchasedCourses.length > 0 && (
+            <button className="dashboard-welcome-btn" onClick={() => navigate("/my-courses")}>
+              Continue Learning →
+            </button>
+          )}
+        </div>
+
+        {/* Stats */}
         <div className="stats-grid">
           <div className="stat-card animated">
-            <h4>Courses</h4>
+            <span className="stat-icon">📚</span>
+            <h4>Enrolled</h4>
             <span>{dbUser.coursesEnrolled || 0}</span>
           </div>
-
           <div className="stat-card animated">
+            <span className="stat-icon">✅</span>
             <h4>Completed</h4>
             <span>{dbUser.completedCourses || 0}</span>
           </div>
-
           <div className="stat-card animated">
+            <span className="stat-icon">🧠</span>
             <h4>Quiz Score</h4>
-            <span style={{ color: dbUser.quizPassed ? "#10b981" : "inherit" }}>
-              {dbUser.quizScore || 0} / {totalQuizQuestions}
+            <span style={{ color: dbUser.quizPassed ? "#10b981" : undefined }}>
+              {dbUser.quizScore || 0}/{totalQuizQuestions}
             </span>
           </div>
-
           <div className="stat-card animated">
+            <span className="stat-icon">🏆</span>
             <h4>Quiz Status</h4>
-            <span
-              style={{
-                fontSize: "18px",
-                color: dbUser.quizPassed ? "#10b981" : "#ef4444",
-              }}
-            >
+            <span style={{ fontSize: 18, color: dbUser.quizPassed ? "#10b981" : "#ef4444" }}>
               {dbUser.quizPassed ? "PASSED ✅" : "PENDING"}
             </span>
           </div>
         </div>
 
-        {/* GRID */}
+        {/* My Courses — quick preview */}
+        {purchasedCourses.length > 0 && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 className="section-heading">My Courses</h2>
+              <span
+                onClick={() => navigate("/my-courses")}
+                style={{ fontSize: 13, color: "#2563eb", cursor: "pointer", fontWeight: 600 }}
+              >
+                View all →
+              </span>
+            </div>
+
+            <div className="courses-grid">
+              {purchasedCourses.slice(0, 3).map((course) => (
+                <div
+                  key={course._id}
+                  className="course-card animated"
+                  onClick={() => navigate(`/my-courses/${course._id}`)}
+                >
+                  <div className="course-card-thumb">
+                    {course.category === "Backend Development" ? "🔗" : "💹"}
+                  </div>
+                  <div className="course-card-body">
+                    <div className="course-card-title">{course.title}</div>
+                    <div className="course-card-meta">
+                      {course.level?.toUpperCase()} • {course.category || "Professional"}
+                    </div>
+                    <div className="course-progress-bar-wrap">
+                      <div className="course-progress-bar" style={{ width: "0%" }} />
+                    </div>
+                    <div className="course-progress-text">0% complete</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Quiz progress + Announcements */}
         <div className="dashboard-grid">
-          {/* PROGRESS */}
           <div className="glass-card animated center">
             <h3>FinTech Quiz Progress</h3>
-
-            <div
-              className="circle-wrap"
-              style={{ width: "150px", margin: "20px auto" }}
-            >
+            <div className="circle-wrap">
               <CircularProgressbar
-                value={progress}
-                text={`${progress}%`}
+                value={quizProgress}
+                text={`${quizProgress}%`}
                 styles={buildStyles({
-                  pathColor: dbUser.quizPassed ? "#10b981" : "#38bdf8",
-                  textColor: dbUser.quizPassed ? "#10b981" : "#38bdf8",
-                  trailColor: "rgba(0,0,0,0.1)",
+                  pathColor: dbUser.quizPassed ? "#10b981" : "#2563eb",
+                  textColor: dbUser.quizPassed ? "#10b981" : "#2563eb",
+                  trailColor: "#f1f5f9",
                 })}
               />
             </div>
-
-            <p style={{ marginTop: "10px", color: "#64748b" }}>
-              Attempts Used: {dbUser.quizAttempts || 0} / 3
+            <p style={{ color: "#64748b", fontSize: 13, marginTop: 8 }}>
+              Attempts: {dbUser.quizAttempts || 0} / 3
             </p>
+            {hasPurchasedCourse && (
+              <button
+                onClick={() => navigate("/quiz/fintech")}
+                style={{
+                  marginTop: 12, background: "#2563eb", color: "#fff",
+                  border: "none", padding: "10px 24px", borderRadius: 8,
+                  fontWeight: 600, fontSize: 14, cursor: "pointer",
+                }}
+              >
+                {dbUser.quizPassed ? "Review Quiz" : "Take Quiz →"}
+              </button>
+            )}
           </div>
 
-          {/* ANNOUNCEMENTS */}
           <div className="glass-card animated">
             <h3>📢 Announcements</h3>
-            <ul style={{ lineHeight: "2" }}>
+            <ul>
               <li>🚀 Internship onboarding starts next week.</li>
               <li>📘 New React course launching soon.</li>
               <li>🎯 Resume workshop on Friday.</li>
               {dbUser.quizPassed && (
-                <li style={{ color: "#10b981", fontWeight: "bold" }}>
+                <li style={{ color: "#10b981", fontWeight: 700 }}>
                   🏆 Your FinTech Certificate is ready to download!
                 </li>
               )}
             </ul>
           </div>
         </div>
+
       </main>
     </div>
   );
