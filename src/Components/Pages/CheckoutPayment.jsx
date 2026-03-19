@@ -1,124 +1,17 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
-import "../../assets/css/checkout.css";
 import axios from "axios";
-import { useAuth } from "@clerk/clerk-react"; 
+import { useAuth, useUser } from "@clerk/clerk-react";
+import "../../assets/css/checkout.css";
 
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
-
-/* 🔑 Stripe TEST publishable key */
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder" 
-);
-
-/* ================= Payment Form ================= */
-function StripePaymentForm({ amount, courseId }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const navigate = useNavigate();
-  const { getToken } = useAuth(); 
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-
-    setIsProcessing(true);
-
-    try {
-      // 1️⃣ Generate a secure Payment Method ID from Stripe
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: "card",
-        card: elements.getElement(CardElement),
-      });
-
-      if (error) {
-        alert(error.message);
-        setIsProcessing(false);
-        return;
-      }
-
-      // 2️⃣ Get the secure Clerk Token
-      const token = await getToken();
-
-      // 3️⃣ Send the payload dynamically
-      const response = await axios.post(
-        "/api/payments/verify",
-        {
-          courseId: courseId, // 🔥 Dynamically fetching the course ID!
-          amount: amount,
-          paymentProvider: "stripe",
-          paymentId: paymentMethod.id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // 4️⃣ Success! Redirect to the newly unlocked dashboard
-      alert("✅ Payment Successful! Dashboard Unlocked.");
-      navigate("/dashboard");
-
-    } catch (err) {
-      console.error("Purchase error:", err);
-      alert(err.response?.data?.message || "Something went wrong while updating purchase.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="checkout-form">
-      <label>Card Details</label>
-
-      <div className="card-box" style={{ padding: "12px", border: "1px solid #ccc", borderRadius: "6px", marginBottom: "20px", background: "#fff" }}>
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: "16px",
-                color: "#020617",
-                "::placeholder": { color: "#94a3b8" },
-              },
-            },
-          }}
-        />
-      </div>
-
-      <div className="checkout-price total">
-        <span>Total Payable</span>
-        <strong>₹{amount}</strong>
-      </div>
-
-      <button 
-        className="checkout-btn" 
-        type="submit" 
-        disabled={!stripe || isProcessing}
-        style={{ opacity: isProcessing ? 0.7 : 1 }}
-      >
-        {isProcessing ? "Processing..." : `Pay ₹${amount}`}
-      </button>
-
-      <p style={{ marginTop: 14, fontSize: 13, opacity: 0.7, textAlign: "center" }}>
-        Test mode • No real money will be charged
-      </p>
-    </form>
-  );
-}
-
-/* ================= Page ================= */
 export default function CheckoutPayment() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // 🔥 STRICT CHECK: If the previous page forgot to pass the courseId, redirect to safety!
+  // ── Safety: if navigated here directly without state, send back ──
   if (!location.state || !location.state.courseId) {
     console.error("Missing courseId in state. Redirecting to courses.");
     return <Navigate to="/courses" replace />;
@@ -127,12 +20,127 @@ export default function CheckoutPayment() {
   const { pricing, courseId } = location.state;
   const amount = pricing?.finalPrice || 30000;
 
+  const handlePayment = async () => {
+    setIsProcessing(true);
+
+    try {
+      const token = await getToken();
+
+      // ── STEP 1: Create Razorpay order on backend ──
+      const orderRes = await axios.post(
+        "/api/payments/create-order",
+        { amount, courseId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { orderId, keyId } = orderRes.data;
+
+      // ── STEP 2: Load Razorpay script dynamically if not present ──
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Razorpay SDK"));
+          document.body.appendChild(script);
+        });
+      }
+
+      // ── STEP 3: Open Razorpay checkout modal ──
+      const options = {
+        key: keyId,
+        amount: amount * 100,
+        currency: "INR",
+        name: "Aventra Tech Solutions",
+        description: "Course Enrollment",
+        image: "https://aventratechsolution.com/img/aventra-logo.png",
+        order_id: orderId,
+
+        prefill: {
+          name: user?.fullName || "",
+          email: user?.primaryEmailAddress?.emailAddress || "",
+          contact: "",
+        },
+
+        theme: { color: "#0f172a" },
+
+        // ── STEP 4: On payment success, get a FRESH token and verify ──
+        // Fresh token is critical — the outer token captured before the modal
+        // opened may have expired while the user was completing payment
+        handler: async (response) => {
+          console.log("✅ Razorpay success response:", response);
+          try {
+            const freshToken = await getToken();
+
+            if (!freshToken) {
+              throw new Error("Session expired. Please log in again.");
+            }
+
+            const verifyRes = await axios.post(
+              "/api/payments/verify",
+              {
+                courseId,
+                amount,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+              { headers: { Authorization: `Bearer ${freshToken}` } }
+            );
+
+            console.log("✅ Verify response:", verifyRes.status, verifyRes.data);
+
+            if (verifyRes.status === 201) {
+              navigate("/dashboard", {
+                state: { enrolled: true },
+                replace: true,
+              });
+            }
+          } catch (verifyErr) {
+            console.error("❌ Verify error:", verifyErr.response?.data || verifyErr.message);
+            const msg = verifyErr.response?.data?.message || verifyErr.message || "Verification failed";
+
+            if (verifyErr.response?.status === 409) {
+              alert("ℹ️ You have already purchased this course.");
+              navigate("/dashboard", { replace: true });
+            } else {
+              alert(`❌ ${msg}\n\nPayment ID: ${response.razorpay_payment_id}\nPlease contact support with this ID.`);
+            }
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+
+      rzp.on("payment.failed", (response) => {
+        console.error("Razorpay payment failed:", response.error);
+        alert(`❌ Payment failed: ${response.error.description}`);
+        setIsProcessing(false);
+      });
+
+      rzp.open();
+
+    } catch (err) {
+      console.error("Payment initiation error:", err);
+      alert(err.response?.data?.message || "Could not initiate payment. Please try again.");
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="checkout-wrapper">
       <div className="checkout-card">
         <h1 className="checkout-title">Payment</h1>
         <p className="checkout-subtitle">
-          Secure checkout powered by Stripe
+          Secure checkout powered by Razorpay
         </p>
 
         <div className="checkout-steps">
@@ -141,9 +149,60 @@ export default function CheckoutPayment() {
           <span className="active">3 Payment</span>
         </div>
 
-        <Elements stripe={stripePromise}>
-          <StripePaymentForm amount={amount} courseId={courseId} />
-        </Elements>
+        {/* Order Summary */}
+        <div
+          style={{
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: "8px",
+            padding: "20px 24px",
+            marginBottom: "24px",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", fontSize: "14px", color: "#475569" }}>
+            <span>Base Price</span>
+            <span>₹{pricing?.basePrice || amount}</span>
+          </div>
+          {pricing?.discount > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", fontSize: "14px", color: "#16a34a" }}>
+              <span>Referral Discount</span>
+              <span>- ₹{pricing.discount}</span>
+            </div>
+          )}
+          <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "12px 0" }} />
+          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: "17px", color: "#0f172a" }}>
+            <span>Total Payable</span>
+            <strong>₹{amount}</strong>
+          </div>
+        </div>
+
+        {/* What happens next */}
+        <div
+          style={{
+            background: "#f0fdf4",
+            border: "1px solid #86efac",
+            borderRadius: "8px",
+            padding: "14px 18px",
+            marginBottom: "24px",
+            fontSize: "13px",
+            color: "#166534",
+          }}
+        >
+          ✅ After payment, you'll receive an invoice + welcome email and be redirected to your dashboard instantly.
+        </div>
+
+        <button
+          className="checkout-btn"
+          onClick={handlePayment}
+          disabled={isProcessing}
+          style={{ opacity: isProcessing ? 0.7 : 1 }}
+        >
+          {isProcessing ? "Processing..." : `Pay ₹${amount} with Razorpay`}
+        </button>
+
+        <p style={{ marginTop: 14, fontSize: 13, opacity: 0.7, textAlign: "center" }}>
+          Test mode • No real money will be charged • Secured by Razorpay
+        </p>
       </div>
     </div>
   );

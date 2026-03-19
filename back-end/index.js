@@ -106,7 +106,6 @@ app.post("/api/user/sync", async (req, res) => {
     const authData = typeof req.auth === "function" ? req.auth() : req.auth;
     const authUserId = authData?.userId;
 
-    // Accept either the verified auth ID or the body-supplied clerkId (fallback)
     const validId = authUserId || clerkId;
 
     if (!validId) {
@@ -127,12 +126,72 @@ app.post("/api/user/sync", async (req, res) => {
       });
 
       console.log(`✅ New user synced: ${user.email} (${user.role})`);
+    } else {
+      // ── Update name/email if missing (fixes Apple Hide My Email users) ──
+      const updates = {};
+      if (!user.fullName && fullName) updates.fullName = fullName;
+      if (!user.email || user.email.includes("privaterelay.appleid.com")) {
+        if (email && !email.includes("privaterelay.appleid.com")) {
+          updates.email = email;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        await User.findOneAndUpdate({ clerkId: validId }, { $set: updates });
+        Object.assign(user, updates);
+        console.log(`✅ User profile updated:`, updates);
+      }
     }
 
     res.json({ message: "User synced successfully", user });
   } catch (error) {
     console.error("User sync error:", error);
     res.status(500).json({ error: "Server error during sync" });
+  }
+});
+
+// ================= GET CURRENT USER =================
+app.get("/api/user/me", async (req, res) => {
+  try {
+    const authData = typeof req.auth === "function" ? req.auth() : req.auth;
+    const authUserId = authData?.userId;
+
+    if (!authUserId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await User.findOne({ clerkId: authUserId });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ================= GET CURRENT USER =================  ← ADD THIS BLOCK HERE
+app.get("/api/user/me", async (req, res) => {
+  try {
+    const authData = typeof req.auth === "function" ? req.auth() : req.auth;
+    const authUserId = authData?.userId;
+
+    if (!authUserId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await User.findOne({ clerkId: authUserId });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
