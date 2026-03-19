@@ -1,14 +1,20 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
 import axios from "axios";
 import "../../assets/css/checkout.css";
 
 export default function CheckoutDetails() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isSignedIn, isLoaded, user } = useUser();
   const { openSignIn } = useClerk();
   const { getToken } = useAuth();
+
+  // ── Read course info passed from the course card ──
+  const incomingCourseId = location.state?.courseId;
+  const incomingCourseName = location.state?.courseName || "FinTech Systems & Digital Platforms";
+  const incomingPrice = location.state?.pricing?.finalPrice || 30000;
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -63,15 +69,15 @@ export default function CheckoutDetails() {
       );
     } catch (err) {
       console.error("Profile update failed (non-critical):", err);
-      // Don't block checkout for this
     }
 
     navigate("/checkout/referral", {
       state: {
         user: formData,
         course: {
-          name: "FinTech Systems & Digital Platforms",
-          price: 30000,
+          _id: incomingCourseId,
+          name: incomingCourseName,
+          price: incomingPrice,
         },
       },
     });
@@ -93,7 +99,7 @@ export default function CheckoutDetails() {
       <div className="checkout-card">
 
         {/* Header */}
-        <h2 className="checkout-title">Apply for FinTech Program</h2>
+        <h2 className="checkout-title">Apply for {incomingCourseName}</h2>
         <p className="checkout-subtitle">
           Start your journey with industry-aligned delivery programs
         </p>
@@ -143,8 +149,7 @@ export default function CheckoutDetails() {
           </div>
         )}
 
-        {/* Signed in confirmation — shows personal email from form if filled,
-            otherwise falls back to Clerk email (handles Apple relay case) */}
+        {/* Signed in confirmation */}
         {isSignedIn && (
           <div
             style={{

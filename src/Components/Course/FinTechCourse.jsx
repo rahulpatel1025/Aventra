@@ -7,30 +7,28 @@ export default function FinTechCourse({ course }) {
 
   if (!course) return null;
 
-  // Fallback features if your course object doesn't have an array of them
-  const features = course.features || [
-    "Instant access to course materials",
-    "Personalized learning dashboard",
-    "Industry-recognized certificate",
-    "Career placement assistance"
-  ];
+  const features = course.features?.length > 0
+    ? course.features
+    : [
+        "Instant access to course materials",
+        "Personalized learning dashboard",
+        "Industry-recognized certificate",
+        "Career placement assistance",
+      ];
 
   return (
     <section className="fintech-section">
       <div className="modern-course-card">
-        
+
         {/* ================= TOP SECTION (White) ================= */}
         <div className="card-top">
           <div className="card-header">
-            {/* Light Blue Icon Box */}
             <div className="icon-box">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                 <path d="M6 12v5c3 3 9 3 12 0v-5"/>
               </svg>
             </div>
-            
-            {/* Pill Badge */}
             <div className="step-badge">
               {course.level ? course.level.toUpperCase() : "PREMIUM"}
             </div>
@@ -43,7 +41,7 @@ export default function FinTechCourse({ course }) {
         {/* ================= BOTTOM SECTION (Blue) ================= */}
         <div className="card-bottom">
           <h4 className="bottom-heading">WHAT YOU'LL GAIN:</h4>
-          
+
           <ul className="feature-list">
             {features.map((feature, index) => (
               <li key={index}>
@@ -73,7 +71,8 @@ export default function FinTechCourse({ course }) {
                 navigate("/checkout/details", {
                   state: {
                     courseId: course._id,
-                    pricing: { finalPrice: course.price },
+                    courseName: course.title,
+                    pricing: { finalPrice: course.price, basePrice: course.price },
                   },
                 })
               }

@@ -21,7 +21,6 @@ export default function CheckoutReferral() {
   const finalPrice = basePrice - discount;
 
   const applyReferral = () => {
-    // Demo referral logic
     if (referralCode === "AVENTRA1000") {
       setDiscount(1000);
       alert("Referral applied: ₹1000 off");
@@ -32,14 +31,19 @@ export default function CheckoutReferral() {
   };
 
   const handleNext = () => {
-    // 🔥 THE FIX: If course._id is missing, fallback to our known FinTech Course ID!
-    const validCourseId = course._id || course.id || "698dee27e56d0404b2ec951c";
+    // course._id is now always passed from CheckoutDetails
+    const validCourseId = course._id || course.id;
+
+    if (!validCourseId) {
+      alert("Course information is missing. Please go back and try again.");
+      return;
+    }
 
     console.log("Navigating to Payment with Course ID:", validCourseId);
 
     navigate("/checkout/payment", {
       state: {
-        courseId: validCourseId, // Safely passing the valid ID
+        courseId: validCourseId,
         user,
         course,
         pricing: {
@@ -71,7 +75,7 @@ export default function CheckoutReferral() {
         {/* Course Summary */}
         <div className="summary-box">
           <h4>Course</h4>
-          <p>{course.name || "FinTech Professional Course"}</p>
+          <p>{course.name || course.title || "Professional Course"}</p>
         </div>
 
         {/* Referral */}

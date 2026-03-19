@@ -72,7 +72,8 @@ export default function ODataCourseCard({ course }) {
                 navigate("/checkout/details", {
                   state: {
                     courseId: course._id,
-                    pricing: { finalPrice: course.price },
+                    courseName: course.title,
+                    pricing: { finalPrice: course.price, basePrice: course.price },
                   },
                 })
               }
