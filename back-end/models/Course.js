@@ -40,6 +40,11 @@ const courseSchema = new mongoose.Schema(
       default: "beginner",
     },
 
+    features: {
+     type: [String],
+     default: [],
+     },
+
     isPublished: {
       type: Boolean,
       default: false, // admin controls this
