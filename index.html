@@ -2,60 +2,202 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/img/aventra-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aventra tech</title>
 
-    <!-- Google Web Fonts -->
+    <!-- ═══════════════════════════════════════
+         PRIMARY SEO META TAGS
+    ═══════════════════════════════════════ -->
+    <title>Aventra Tech Solutions — FinTech & OData Courses | 100% Paid Internship Guarantee</title>
+
+    <meta name="description" content="Aventra Tech Solutions offers industry-aligned FinTech and OData API courses with a 100% paid internship guarantee. Learn real-world delivery skills, get mentored by engineers, and launch your tech career. Enroll today." />
+
+    <meta name="keywords" content="FinTech course India, OData API course, paid internship guarantee, tech career guidance, FinTech training, API development course, project delivery training, software engineering course, Aventra Tech Solutions" />
+
+    <meta name="author" content="Aventra Tech Solutions" />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Canonical URL — prevents duplicate content issues -->
+    <link rel="canonical" href="https://aventratechsolution.com/" />
+
+    <!-- ═══════════════════════════════════════
+         OPEN GRAPH — WhatsApp, LinkedIn, Facebook previews
+    ═══════════════════════════════════════ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Aventra Tech Solutions" />
+    <meta property="og:title" content="Aventra Tech Solutions — FinTech & OData Courses | 100% Paid Internship" />
+    <meta property="og:description" content="Industry-aligned FinTech and OData API courses with a 100% paid internship guarantee. Real-world delivery training, expert mentorship, and career placement support." />
+    <meta property="og:url" content="https://aventratechsolution.com/" />
+    <meta property="og:image" content="https://aventratechsolution.com/img/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Aventra Tech Solutions — FinTech Courses with Paid Internship" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- ═══════════════════════════════════════
+         TWITTER / X CARD
+    ═══════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Aventra Tech Solutions — FinTech & OData Courses" />
+    <meta name="twitter:description" content="100% paid internship guarantee. Industry-aligned FinTech and OData API courses with real-world project delivery training." />
+    <meta name="twitter:image" content="https://aventratechsolution.com/img/og-image.png" />
+
+    <!-- ═══════════════════════════════════════
+         STRUCTURED DATA — JSON-LD Schema
+         Helps Google show rich results (course cards, org info)
+    ═══════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://aventratechsolution.com/#organization",
+          "name": "Aventra Tech Solutions",
+          "url": "https://aventratechsolution.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://aventratechsolution.com/img/aventra-logo.png"
+          },
+          "description": "Aventra Tech Solutions provides industry-aligned technology courses with a 100% paid internship guarantee. Specializing in FinTech systems, OData API development, and project delivery training.",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "info@aventratechsolution.com",
+            "availableLanguage": ["English", "Hindi"]
+          },
+          "sameAs": []
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://aventratechsolution.com/#website",
+          "url": "https://aventratechsolution.com",
+          "name": "Aventra Tech Solutions",
+          "publisher": {
+            "@id": "https://aventratechsolution.com/#organization"
+          }
+        },
+        {
+          "@type": "Course",
+          "name": "FinTech Systems & Digital Platforms",
+          "description": "Comprehensive FinTech course covering digital payment systems, banking technology, blockchain, RegTech, and InsurTech. Includes 100% paid internship guarantee.",
+          "provider": {
+            "@id": "https://aventratechsolution.com/#organization"
+          },
+          "url": "https://aventratechsolution.com/courses",
+          "offers": {
+            "@type": "Offer",
+            "price": "30000",
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock",
+            "url": "https://aventratechsolution.com/checkout/details"
+          },
+          "hasCourseInstance": {
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "inLanguage": "en"
+          },
+          "teaches": [
+            "Digital Payment Systems",
+            "Banking Technology",
+            "Blockchain & Crypto",
+            "RegTech & Compliance",
+            "FinTech Career Skills"
+          ]
+        },
+        {
+          "@type": "Course",
+          "name": "OData Integration & API Development",
+          "description": "Advanced OData API course covering RESTful API design, OData V4 protocol, secure data integration workflows, and production-grade backend routing.",
+          "provider": {
+            "@id": "https://aventratechsolution.com/#organization"
+          },
+          "url": "https://aventratechsolution.com/courses",
+          "offers": {
+            "@type": "Offer",
+            "price": "50000",
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock",
+            "url": "https://aventratechsolution.com/checkout/details"
+          },
+          "hasCourseInstance": {
+            "@type": "CourseInstance",
+            "courseMode": "online",
+            "inLanguage": "en"
+          },
+          "teaches": [
+            "OData V4 Protocol",
+            "RESTful API Design",
+            "Secure Data Integration",
+            "Backend Routing",
+            "API Development"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Does Aventra Tech Solutions guarantee a paid internship?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Aventra Tech Solutions offers a 100% paid internship guarantee after course completion. If you do not receive a paid internship, you get your money back."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What courses does Aventra Tech Solutions offer?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We offer FinTech Systems & Digital Platforms (₹30,000) and OData Integration & API Development (₹50,000). Both include mentorship, real-world projects, and career placement support."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is the course available online?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, all courses at Aventra Tech Solutions are fully online and accessible from anywhere in India and globally."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- ═══════════════════════════════════════
+         FAVICON
+    ═══════════════════════════════════════ -->
+    <link rel="icon" type="image/png" href="/img/aventra-logo.png" />
+    <link rel="apple-touch-icon" href="/img/aventra-logo.png" />
+
+    <!-- ═══════════════════════════════════════
+         FONTS & ICONS
+    ═══════════════════════════════════════ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
-    <!-- Icon Font Stylesheet -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
-      rel="stylesheet"
-    />
+    <!-- Animate.css via CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" />
 
-    <!-- Animate.css via CDN (replaces missing local animate.min.css) -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-      rel="stylesheet"
-    />
+    <!-- Owl Carousel CSS via CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" rel="stylesheet" />
 
-    <!-- Owl Carousel CSS via CDN (replaces missing local owl.carousel.min.css) -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Customized Bootstrap Stylesheet -->
+    <!-- Bootstrap & Template -->
     <link href="src/assets/css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- Template Stylesheet -->
     <link href="src/assets/css/style.css" rel="stylesheet" />
-
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
-    />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/lib/wow/wow.min.js"></script>

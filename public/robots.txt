@@ -1,0 +1,28 @@
+# Aventra Tech Solutions — robots.txt
+# Tells search engines what to crawl and what to skip
+
+User-agent: *
+
+# Allow all public pages
+Allow: /
+Allow: /courses
+Allow: /about
+Allow: /contact
+Allow: /team
+Allow: /testimonial
+Allow: /privacy-policy
+Allow: /terms
+Allow: /refund-policy
+
+# Block private/auth pages from being indexed
+Disallow: /dashboard
+Disallow: /my-courses
+Disallow: /checkout/
+Disallow: /quiz/
+Disallow: /profile
+Disallow: /register
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://aventratechsolution.com/sitemap.xml
