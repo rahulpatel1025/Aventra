@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../../assets/css/checkout.css";
-
-// ── Referral codes ──
-// AVENTRA1000  → ₹1000 off  (share with students)
-// AVENTRADEV1  → pay ₹1     (your private testing code)
-const REFERRAL_CODES = {
-  "AVENTRA1000": { discount: null, label: "₹1,000 off" },   // discount set dynamically below
-  "AVENTRADEV1": { discount: "almost_all", label: "Pay just ₹1 🎉" },
-};
 
 export default function CheckoutReferral() {
   const navigate = useNavigate();
@@ -25,24 +18,39 @@ export default function CheckoutReferral() {
   const [discount, setDiscount] = useState(0);
   const [appliedLabel, setAppliedLabel] = useState("");
   const [invalid, setInvalid] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
   const basePrice = course.price || 30000;
-  const finalPrice = Math.max(1, basePrice - discount); // never below ₹1
+  const finalPrice = Math.max(1, basePrice - discount);
 
-  const applyReferral = () => {
-    const code = referralCode.trim().toUpperCase();
+  const applyReferral = async () => {
+    const code = referralCode.trim();
+    if (!code) return;
+
+    setIsApplying(true);
     setInvalid(false);
     setAppliedLabel("");
 
-    if (code === "AVENTRADEV1") {
-      setDiscount(basePrice - 1); // leaves exactly ₹1
-      setAppliedLabel("Pay just ₹1 🎉");
-    } else if (code === "AVENTRA1000") {
-      setDiscount(1000);
-      setAppliedLabel("₹1,000 off applied ✅");
-    } else {
+    try {
+      // ── Validate on backend — codes are never in the frontend bundle ──
+      const res = await axios.post("/api/referral/validate", {
+        code,
+        coursePrice: basePrice,
+      });
+
+      if (res.data.valid) {
+        setDiscount(res.data.discount);
+        setAppliedLabel(res.data.label);
+      } else {
+        setDiscount(0);
+        setInvalid(true);
+      }
+    } catch (err) {
+      console.error("Referral validation error:", err);
       setDiscount(0);
       setInvalid(true);
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -97,12 +105,15 @@ export default function CheckoutReferral() {
                 setReferralCode(e.target.value);
                 setInvalid(false);
                 setAppliedLabel("");
+                setDiscount(0);
               }}
+              onKeyDown={(e) => e.key === "Enter" && applyReferral()}
             />
-            <button onClick={applyReferral}>Apply</button>
+            <button onClick={applyReferral} disabled={isApplying}>
+              {isApplying ? "..." : "Apply"}
+            </button>
           </div>
 
-          {/* Inline feedback — no alerts */}
           {appliedLabel && (
             <p style={{ color: "#16a34a", fontSize: 13, fontWeight: 600, marginTop: 6 }}>
               ✅ {appliedLabel}
