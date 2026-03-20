@@ -214,7 +214,7 @@ export default function CourseDetail() {
       <AnimatedBackground type={type} />
 
       {/* Content */}
-      <div style={{ position: "relative", zIndex: 1, paddingTop: "140px", paddingBottom: 60 }}>
+      <div style={{ position: "relative", zIndex: 1, paddingTop: "20px", paddingBottom: 60 }}>
         <div className="course-detail-layout">
 
           {/* Back */}
