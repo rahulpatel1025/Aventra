@@ -2,11 +2,18 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../../assets/css/checkout.css";
 
+// ── Referral codes ──
+// AVENTRA1000  → ₹1000 off  (share with students)
+// AVENTRADEV1  → pay ₹1     (your private testing code)
+const REFERRAL_CODES = {
+  "AVENTRA1000": { discount: null, label: "₹1,000 off" },   // discount set dynamically below
+  "AVENTRADEV1": { discount: "almost_all", label: "Pay just ₹1 🎉" },
+};
+
 export default function CheckoutReferral() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Safety check (direct URL access protection)
   if (!location.state) {
     navigate("/checkout/details");
     return null;
@@ -16,30 +23,36 @@ export default function CheckoutReferral() {
 
   const [referralCode, setReferralCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [appliedLabel, setAppliedLabel] = useState("");
+  const [invalid, setInvalid] = useState(false);
 
   const basePrice = course.price || 30000;
-  const finalPrice = basePrice - discount;
+  const finalPrice = Math.max(1, basePrice - discount); // never below ₹1
 
   const applyReferral = () => {
-    if (referralCode === "AVENTRA1000") {
+    const code = referralCode.trim().toUpperCase();
+    setInvalid(false);
+    setAppliedLabel("");
+
+    if (code === "AVENTRADEV1") {
+      setDiscount(basePrice - 1); // leaves exactly ₹1
+      setAppliedLabel("Pay just ₹1 🎉");
+    } else if (code === "AVENTRA1000") {
       setDiscount(1000);
-      alert("Referral applied: ₹1000 off");
+      setAppliedLabel("₹1,000 off applied ✅");
     } else {
       setDiscount(0);
-      alert("Invalid referral code");
+      setInvalid(true);
     }
   };
 
   const handleNext = () => {
-    // course._id is now always passed from CheckoutDetails
     const validCourseId = course._id || course.id;
 
     if (!validCourseId) {
       alert("Course information is missing. Please go back and try again.");
       return;
     }
-
-    console.log("Navigating to Payment with Course ID:", validCourseId);
 
     navigate("/checkout/payment", {
       state: {
@@ -59,26 +72,20 @@ export default function CheckoutReferral() {
     <section className="checkout-wrapper">
       <div className="checkout-card">
 
-        {/* Header */}
-        <h2 className="checkout-title">Confirm & Apply Referral</h2>
-        <p className="checkout-subtitle">
-          Review your fee details before payment
-        </p>
+        <h2 className="checkout-title">Confirm &amp; Apply Referral</h2>
+        <p className="checkout-subtitle">Review your fee details before payment</p>
 
-        {/* Step Indicator */}
         <div className="checkout-steps">
           <span>1 Details</span>
           <span className="active">2 Referral</span>
           <span>3 Payment</span>
         </div>
 
-        {/* Course Summary */}
         <div className="summary-box">
           <h4>Course</h4>
           <p>{course.name || course.title || "Professional Course"}</p>
         </div>
 
-        {/* Referral */}
         <div className="checkout-form">
           <label>Referral Code (optional)</label>
           <div className="referral-row">
@@ -86,33 +93,46 @@ export default function CheckoutReferral() {
               type="text"
               placeholder="Enter referral code"
               value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value)}
+              onChange={(e) => {
+                setReferralCode(e.target.value);
+                setInvalid(false);
+                setAppliedLabel("");
+              }}
             />
             <button onClick={applyReferral}>Apply</button>
           </div>
+
+          {/* Inline feedback — no alerts */}
+          {appliedLabel && (
+            <p style={{ color: "#16a34a", fontSize: 13, fontWeight: 600, marginTop: 6 }}>
+              ✅ {appliedLabel}
+            </p>
+          )}
+          {invalid && (
+            <p style={{ color: "#dc2626", fontSize: 13, marginTop: 6 }}>
+              ❌ Invalid referral code
+            </p>
+          )}
         </div>
 
-        {/* Price Breakdown */}
         <div className="price-box">
           <div>
             <span>Base Price</span>
-            <span>₹{basePrice}</span>
+            <span>₹{basePrice.toLocaleString()}</span>
           </div>
-
           <div>
             <span>Discount</span>
-            <span>- ₹{discount}</span>
+            <span style={{ color: discount > 0 ? "#16a34a" : undefined }}>
+              - ₹{discount.toLocaleString()}
+            </span>
           </div>
-
           <hr />
-
           <div className="total">
             <span>Total Payable</span>
-            <span>₹{finalPrice}</span>
+            <span>₹{finalPrice.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* CTA */}
         <button className="checkout-btn" onClick={handleNext}>
           Proceed to Payment
         </button>
