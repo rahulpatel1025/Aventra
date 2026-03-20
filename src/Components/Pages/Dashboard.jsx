@@ -141,11 +141,6 @@ export default function Dashboard() {
           <a onClick={() => navigate("/")}>🏠 Home</a>
           <a className="active">📊 Dashboard</a>
           <a onClick={() => navigate("/my-courses")}>📚 My Courses</a>
-
-          {hasPurchasedCourse && (
-            <a onClick={() => navigate("/quiz/fintech")}>🧠 FinTech Quiz</a>
-          )}
-
           <a>🎓 Certificates</a>
           <a>⚙️ Settings</a>
         </nav>
