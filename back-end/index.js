@@ -4,6 +4,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const path = require("path");
+const fs = require("fs");
 const winston = require("winston");
 require("dotenv").config();
 
@@ -20,15 +21,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
+// ================= AUTO-CREATE LOGS DIRECTORY =================
+// Prevents winston from crashing if logs/ folder doesn't exist on Hostinger
+const logsDir = path.join(__dirname, "logs");
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
+
 // ================= LOGGER (winston) =================
-// Structured logging — replaces console.log/error throughout
 const logger = winston.createLogger({
   level: IS_PRODUCTION ? "info" : "debug",
   format: winston.format.combine(
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     winston.format.errors({ stack: true }),
     IS_PRODUCTION
-      ? winston.format.json()                        // machine-readable in prod
+      ? winston.format.json()
       : winston.format.combine(
           winston.format.colorize(),
           winston.format.printf(({ timestamp, level, message, stack }) =>
@@ -40,11 +47,15 @@ const logger = winston.createLogger({
   ),
   transports: [
     new winston.transports.Console(),
-    // In production also write to a file for debugging on Hostinger
     ...(IS_PRODUCTION
       ? [
-          new winston.transports.File({ filename: "logs/error.log", level: "error" }),
-          new winston.transports.File({ filename: "logs/combined.log" }),
+          new winston.transports.File({
+            filename: path.join(logsDir, "error.log"),
+            level: "error",
+          }),
+          new winston.transports.File({
+            filename: path.join(logsDir, "combined.log"),
+          }),
         ]
       : []),
   ],
@@ -59,13 +70,10 @@ if (IS_PRODUCTION) {
 }
 
 // ================= HELMET (Security Headers) =================
-// Sets X-Frame-Options, Content-Security-Policy, X-XSS-Protection, etc.
 app.use(
   helmet({
-    contentSecurityPolicy: IS_PRODUCTION
-      ? undefined  // use helmet's strict default in production
-      : false,     // disable CSP in dev to avoid breaking Vite HMR
-    crossOriginEmbedderPolicy: false, // needed for Razorpay iframe to work
+    contentSecurityPolicy: IS_PRODUCTION ? undefined : false,
+    crossOriginEmbedderPolicy: false, // needed for Razorpay iframe
   })
 );
 
@@ -105,14 +113,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ================= REQUEST LOGGER =================
-// Logs every incoming API request — useful for debugging on Hostinger
 app.use((req, res, next) => {
   if (req.originalUrl.startsWith("/api")) {
     const start = Date.now();
     res.on("finish", () => {
       const ms = Date.now() - start;
-      const level = res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
-      logger[level](`${req.method} ${req.originalUrl} ${res.statusCode} — ${ms}ms`);
+      const level =
+        res.statusCode >= 500 ? "error" :
+        res.statusCode >= 400 ? "warn" : "info";
+      logger[level](
+        `${req.method} ${req.originalUrl} ${res.statusCode} — ${ms}ms`
+      );
     });
   }
   next();
@@ -203,7 +214,6 @@ app.post("/api/user/sync", async (req, res) => {
 });
 
 // ================= GET CURRENT USER =================
-// Single definition — duplicate removed
 app.get("/api/user/me", async (req, res) => {
   try {
     const authData = typeof req.auth === "function" ? req.auth() : req.auth;
@@ -284,29 +294,33 @@ app.delete("/api/feedback/:id", async (req, res) => {
 
 // ================= MONGODB WITH RETRY LOGIC =================
 const MONGO_MAX_RETRIES = 5;
-const MONGO_RETRY_DELAY_MS = 5000; // 5 seconds between retries
+const MONGO_RETRY_DELAY_MS = 5000;
 
 async function connectWithRetry(attempt = 1) {
   try {
     await mongoose.connect(process.env.DB_URL, {
-      serverSelectionTimeoutMS: 10000, // give up finding a server after 10s
-      socketTimeoutMS: 45000,          // close sockets after 45s inactivity
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     });
     logger.info("MongoDB Connected");
   } catch (err) {
     if (attempt >= MONGO_MAX_RETRIES) {
-      logger.error(`MongoDB failed after ${MONGO_MAX_RETRIES} attempts. Exiting.`, err);
+      logger.error(
+        `MongoDB failed after ${MONGO_MAX_RETRIES} attempts. Exiting.`,
+        err
+      );
       process.exit(1);
     }
     logger.warn(
-      `MongoDB connection attempt ${attempt} failed. Retrying in ${MONGO_RETRY_DELAY_MS / 1000}s...`
+      `MongoDB connection attempt ${attempt} failed. Retrying in ${
+        MONGO_RETRY_DELAY_MS / 1000
+      }s...`
     );
     await new Promise((resolve) => setTimeout(resolve, MONGO_RETRY_DELAY_MS));
     return connectWithRetry(attempt + 1);
   }
 }
 
-// Handle disconnects that happen AFTER initial connection
 mongoose.connection.on("disconnected", () => {
   logger.warn("MongoDB disconnected. Attempting reconnect...");
   setTimeout(() => connectWithRetry(), MONGO_RETRY_DELAY_MS);
@@ -345,7 +359,9 @@ if (IS_PRODUCTION) {
 connectWithRetry().then(() => {
   app.listen(PORT, () => {
     logger.info(
-      `Server running on port ${PORT} [${IS_PRODUCTION ? "production" : "development"}]`
+      `Server running on port ${PORT} [${
+        IS_PRODUCTION ? "production" : "development"
+      }]`
     );
   });
 });
