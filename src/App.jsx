@@ -40,7 +40,6 @@ import Advjava from "./Components/Course/Advjava";
 import FintechQuiz from "./Components/Quiz/FintechQuiz";
 
 // Ebook & Chatbot
-import ShowBook from "./Components/Ebook/ShowBook";
 import BotpressChatbot from "./Components/Ebook/BotpressChatbot";
 
 // Checkout
@@ -132,7 +131,6 @@ function App() {
         <Route path="/courses/programming/javascript" element={<Javascript />} />
 
         {/* LIBRARY & FEEDBACK */}
-        <Route path="/library" element={<ShowBook />} />
         <Route path="/feedback" element={<FeedbackAll />} />
 
         <Route path="/courses/:slug" element={<FintechCourseDetails />} />
