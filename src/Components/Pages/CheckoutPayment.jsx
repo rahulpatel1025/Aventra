@@ -11,7 +11,6 @@ export default function CheckoutPayment() {
   const { user } = useUser();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // ── Safety: if navigated here directly without state, send back ──
   if (!location.state || !location.state.courseId) {
     console.error("Missing courseId in state. Redirecting to courses.");
     return <Navigate to="/courses" replace />;
@@ -20,13 +19,18 @@ export default function CheckoutPayment() {
   const { pricing, courseId } = location.state;
   const amount = pricing?.finalPrice || 30000;
 
+  // ── EMI is only shown by Razorpay when amount >= 3000 ──
+  // For ₹1 test payments (AVENTRADEV1 code) we skip the EMI block
+  // so the modal doesn't look broken
+  const showEmi = amount >= 3000;
+
   const handlePayment = async () => {
     setIsProcessing(true);
 
     try {
       const token = await getToken();
 
-      // ── STEP 1: Create Razorpay order on backend ──
+      // ── STEP 1: Create Razorpay order ──
       const orderRes = await axios.post(
         "/api/payments/create-order",
         { amount, courseId },
@@ -35,7 +39,7 @@ export default function CheckoutPayment() {
 
       const { orderId, keyId } = orderRes.data;
 
-      // ── STEP 2: Load Razorpay script dynamically if not present ──
+      // ── STEP 2: Load Razorpay SDK if not already loaded ──
       if (!window.Razorpay) {
         await new Promise((resolve, reject) => {
           const script = document.createElement("script");
@@ -46,7 +50,7 @@ export default function CheckoutPayment() {
         });
       }
 
-      // ── STEP 3: Open Razorpay checkout modal ──
+      // ── STEP 3: Build Razorpay options ──
       const options = {
         key: keyId,
         amount: amount * 100,
@@ -64,11 +68,38 @@ export default function CheckoutPayment() {
 
         theme: { color: "#0f172a" },
 
-        // ── STEP 4: On payment success, get a FRESH token and verify ──
-        // Fresh token is critical — the outer token captured before the modal
-        // opened may have expired while the user was completing payment
+        // ── EMI + payment method display config ──
+        // Only applied when amount >= ₹3,000
+        // Razorpay ignores config.display silently if EMI isn't available
+        ...(showEmi && {
+          config: {
+            display: {
+              blocks: {
+                emi: {
+                  name: "Pay in Easy Installments (EMI)",
+                  instruments: [{ method: "emi" }],
+                },
+                other: {
+                  name: "Other Payment Methods",
+                  instruments: [
+                    { method: "upi" },
+                    { method: "card" },
+                    { method: "netbanking" },
+                    { method: "wallet" },
+                  ],
+                },
+              },
+              sequence: ["block.emi", "block.other"],
+              preferences: {
+                show_default_blocks: false,
+              },
+            },
+          },
+        }),
+
+        // ── STEP 4: On success, fetch fresh token and verify ──
         handler: async (response) => {
-          console.log("✅ Razorpay success response:", response);
+          console.log("✅ Razorpay success:", response);
           try {
             const freshToken = await getToken();
 
@@ -104,7 +135,9 @@ export default function CheckoutPayment() {
               alert("ℹ️ You have already purchased this course.");
               navigate("/dashboard", { replace: true });
             } else {
-              alert(`❌ ${msg}\n\nPayment ID: ${response.razorpay_payment_id}\nPlease contact support with this ID.`);
+              alert(
+                `❌ ${msg}\n\nPayment ID: ${response.razorpay_payment_id}\nPlease contact support@aventratechsolution.com with this ID.`
+              );
             }
           } finally {
             setIsProcessing(false);
@@ -112,16 +145,14 @@ export default function CheckoutPayment() {
         },
 
         modal: {
-          ondismiss: () => {
-            setIsProcessing(false);
-          },
+          ondismiss: () => setIsProcessing(false),
         },
       };
 
       const rzp = new window.Razorpay(options);
 
       rzp.on("payment.failed", (response) => {
-        console.error("Razorpay payment failed:", response.error);
+        console.error("Payment failed:", response.error);
         alert(`❌ Payment failed: ${response.error.description}`);
         setIsProcessing(false);
       });
@@ -139,9 +170,7 @@ export default function CheckoutPayment() {
     <div className="checkout-wrapper">
       <div className="checkout-card">
         <h1 className="checkout-title">Payment</h1>
-        <p className="checkout-subtitle">
-          Secure checkout powered by Razorpay
-        </p>
+        <p className="checkout-subtitle">Secure checkout powered by Razorpay</p>
 
         <div className="checkout-steps">
           <span>1 Details</span>
@@ -149,16 +178,14 @@ export default function CheckoutPayment() {
           <span className="active">3 Payment</span>
         </div>
 
-        {/* Order Summary */}
-        <div
-          style={{
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
-            borderRadius: "8px",
-            padding: "20px 24px",
-            marginBottom: "24px",
-          }}
-        >
+        {/* Order summary */}
+        <div style={{
+          background: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          borderRadius: "8px",
+          padding: "20px 24px",
+          marginBottom: "24px",
+        }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", fontSize: "14px", color: "#475569" }}>
             <span>Base Price</span>
             <span>₹{pricing?.basePrice || amount}</span>
@@ -176,18 +203,38 @@ export default function CheckoutPayment() {
           </div>
         </div>
 
-        {/* What happens next */}
-        <div
-          style={{
-            background: "#f0fdf4",
-            border: "1px solid #86efac",
+        {/* EMI info banner — only shown when amount >= ₹3000 */}
+        {showEmi && (
+          <div style={{
+            background: "#eff6ff",
+            border: "1px solid #bfdbfe",
             borderRadius: "8px",
             padding: "14px 18px",
-            marginBottom: "24px",
+            marginBottom: "16px",
             fontSize: "13px",
-            color: "#166534",
-          }}
-        >
+            color: "#1d4ed8",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+          }}>
+            <span style={{ fontSize: "18px" }}>💳</span>
+            <div>
+              <strong>EMI available</strong> — Pay in easy monthly installments starting from ₹{Math.round(amount / 12).toLocaleString()}/month.
+              EMI options will appear in the next step.
+            </div>
+          </div>
+        )}
+
+        {/* Post-payment info */}
+        <div style={{
+          background: "#f0fdf4",
+          border: "1px solid #86efac",
+          borderRadius: "8px",
+          padding: "14px 18px",
+          marginBottom: "24px",
+          fontSize: "13px",
+          color: "#166534",
+        }}>
           ✅ After payment, you'll receive an invoice + welcome email and be redirected to your dashboard instantly.
         </div>
 
@@ -197,11 +244,11 @@ export default function CheckoutPayment() {
           disabled={isProcessing}
           style={{ opacity: isProcessing ? 0.7 : 1 }}
         >
-          {isProcessing ? "Processing..." : `Pay ₹${amount} with Razorpay`}
+          {isProcessing ? "Processing..." : `Pay ₹${amount.toLocaleString()} with Razorpay`}
         </button>
 
         <p style={{ marginTop: 14, fontSize: 13, opacity: 0.7, textAlign: "center" }}>
-          Test mode • No real money will be charged • Secured by Razorpay
+          🔒 Secured by Razorpay · UPI · Cards · Netbanking · EMI
         </p>
       </div>
     </div>
