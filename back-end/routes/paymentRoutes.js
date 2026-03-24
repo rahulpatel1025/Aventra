@@ -23,6 +23,16 @@ function handleValidation(req, res) {
 
 const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID || "698dee27e56d0404b2ec951c";
 
+function getEmiOffers() {
+  return [
+    process.env.RAZORPAY_EMI_OFFER_BOB,
+    process.env.RAZORPAY_EMI_OFFER_AXIS,
+    process.env.RAZORPAY_EMI_OFFER_KOTAK,
+    process.env.RAZORPAY_EMI_OFFER_HDFC,
+    process.env.RAZORPAY_EMI_OFFER_ICICI,
+  ].filter(Boolean);
+}
+
 // ================= CREATE ORDER =================
 router.post(
   "/create-order",
@@ -32,8 +42,7 @@ router.post(
       .isNumeric().withMessage("Amount must be a number")
       .custom((val) => val >= 1).withMessage("Amount must be at least ₹1"),
     body("courseId")
-      .trim()
-      .notEmpty().withMessage("Course ID is required")
+      .trim().notEmpty().withMessage("Course ID is required")
       .isMongoId().withMessage("Invalid course ID format"),
   ],
   async (req, res) => {
@@ -45,7 +54,6 @@ router.post(
       const razorpay = getRazorpay();
       const log = global.logger || console;
 
-      // ── Clean order payload — no method_options (not supported on Standard plan) ──
       const orderPayload = {
         amount: Math.round(amount * 100),
         currency: "INR",
@@ -54,26 +62,27 @@ router.post(
         payment_capture: 1,
       };
 
-      // ── Attach No Cost EMI offer only for FinTech at full ₹30,000 ──
       const isFintech = courseId === FINTECH_COURSE_ID;
       const isFullPrice = Math.round(amount) === 30000;
-      const offerId = process.env.RAZORPAY_FINTECH_EMI_OFFER_ID;
+      const emiOffers = getEmiOffers();
+      const emiActive = isFintech && isFullPrice && emiOffers.length > 0;
 
-      if (isFintech && isFullPrice && offerId) {
-        orderPayload.offer_id = offerId;
-        log.info(`No Cost EMI offer applied: ${offerId}`);
+      if (emiActive) {
+        orderPayload.offer_id = emiOffers[0];
+        orderPayload.offers = emiOffers;
+        log.info(`No Cost EMI offers attached: ${emiOffers.length} banks`);
       }
 
       const order = await razorpay.orders.create(orderPayload);
-
-      log.info(`Order created: ${order.id} | ₹${amount}`);
+      log.info(`Order created: ${order.id} | ₹${amount} | EMI: ${emiActive}`);
 
       return res.status(200).json({
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
-        noCoastEmiActive: !!(isFintech && isFullPrice && offerId),
+        emiActive,
+        emiOffers: emiActive ? emiOffers : [],
       });
 
     } catch (err) {
@@ -101,13 +110,19 @@ router.post(
     try {
       const authData = typeof req.auth === "function" ? req.auth() : req.auth;
       const userId = authData?.userId;
-
       if (!userId) return res.status(401).json({ message: "Unauthorized user" });
 
-      const { courseId, amount, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+      const {
+        courseId, amount,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+      } = req.body;
+
       const log = global.logger || console;
       log.info(`Verify — userId: ${userId} | courseId: ${courseId} | paymentId: ${razorpay_payment_id}`);
 
+      // ── HMAC signature verification ──
       const expectedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -118,14 +133,54 @@ router.post(
         return res.status(400).json({ message: "Payment verification failed: invalid signature" });
       }
 
+      // ── Fetch payment details from Razorpay to detect EMI ──
+      // Razorpay payment object contains method: "emi" if student paid via EMI
+      // and emi object with bank, tenure details
+      let paymentMethod = "one_time";
+      let emiDetails = null;
+
+      try {
+        const razorpay = getRazorpay();
+        const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+
+        if (paymentDetails.method === "emi") {
+          paymentMethod = "emi";
+          emiDetails = {
+            bank: paymentDetails.bank || null,
+            tenure: paymentDetails.emi?.tenure || null,
+            monthlyAmount: paymentDetails.emi?.installment_amount
+              ? paymentDetails.emi.installment_amount / 100  // paise → rupees
+              : null,
+            isNoCostEmi: paymentDetails.offer_id
+              ? getEmiOffers().includes(paymentDetails.offer_id)
+              : false,
+          };
+          log.info(`EMI payment detected — bank: ${emiDetails.bank} | tenure: ${emiDetails.tenure}mo | No Cost: ${emiDetails.isNoCostEmi}`);
+        } else {
+          log.info(`One-time payment detected — method: ${paymentDetails.method}`);
+        }
+      } catch (fetchErr) {
+        // Non-critical — if fetch fails, default to one_time
+        // Purchase still completes correctly
+        log.error("Payment fetch for method detection failed (non-critical):", fetchErr.message);
+      }
+
       const purchase = await completePurchase({
-        userId, courseId, amount,
+        userId,
+        courseId,
+        amount,
         paymentProvider: "razorpay",
         paymentId: razorpay_payment_id,
+        paymentMethod,
+        emiDetails,
       });
 
-      log.info(`Purchase saved: ${purchase._id}`);
-      return res.status(201).json({ message: "Purchase completed successfully", purchase });
+      log.info(`Purchase saved: ${purchase._id} | method: ${paymentMethod}`);
+
+      return res.status(201).json({
+        message: "Purchase completed successfully",
+        purchase,
+      });
 
     } catch (err) {
       const log = global.logger || console;

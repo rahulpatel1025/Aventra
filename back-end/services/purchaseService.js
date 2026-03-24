@@ -10,7 +10,10 @@ async function completePurchase({
   amount,
   paymentProvider,
   paymentId,
+  paymentMethod = "one_time", // "one_time" | "emi"
+  emiDetails = null,           // { bank, tenure, monthlyAmount, isNoCostEmi }
 }) {
+  const log = global.logger || console;
 
   // 1️⃣ Validate courseId format
   if (!mongoose.Types.ObjectId.isValid(courseId)) {
@@ -19,39 +22,41 @@ async function completePurchase({
 
   // 2️⃣ Verify course exists
   const course = await Course.findById(courseId);
-  if (!course) {
-    throw new Error("Course not found");
-  }
+  if (!course) throw new Error("Course not found");
 
   // 3️⃣ Verify user exists
   const user = await User.findOne({ clerkId: userId });
-  if (!user) {
-    throw new Error("User not found in database");
-  }
+  if (!user) throw new Error("User not found in database");
 
   // 4️⃣ Prevent duplicate purchase
-  const existingPurchase = await Purchase.findOne({
-    userId,
-    courseId: course._id,
-  });
+  const existingPurchase = await Purchase.findOne({ userId, courseId: course._id });
+  if (existingPurchase) throw new Error("Course already purchased");
 
-  if (existingPurchase) {
-    throw new Error("Course already purchased");
-  }
-
-  // 5️⃣ Create purchase record
-  const purchase = await Purchase.create({
+  // 5️⃣ Build purchase document
+  const purchaseData = {
     userId,
     courseId: course._id,
     amount,
     paymentProvider,
     paymentId,
+    paymentMethod,
     status: "completed",
-  });
-  console.log("✅ Purchase saved to MongoDB:", purchase._id); // ADD THIS
-console.log("✅ Updating user:", userId);                   // ADD THIS
+  };
 
-  // 6️⃣ Update user dashboard safely
+  // Attach EMI details only when payment is via EMI
+  if (paymentMethod === "emi" && emiDetails) {
+    purchaseData.emiDetails = {
+      bank: emiDetails.bank || null,
+      tenure: emiDetails.tenure || null,
+      monthlyAmount: emiDetails.monthlyAmount || null,
+      isNoCostEmi: emiDetails.isNoCostEmi || false,
+    };
+  }
+
+  const purchase = await Purchase.create(purchaseData);
+  log.info(`Purchase saved: ${purchase._id} | method: ${paymentMethod}`);
+
+  // 6️⃣ Update user dashboard
   try {
     await User.findOneAndUpdate(
       { clerkId: userId },
@@ -63,11 +68,10 @@ console.log("✅ Updating user:", userId);                   // ADD THIS
       { new: true }
     );
   } catch (err) {
-    console.error("User update failed:", err);
-    // Don't throw — purchase is already saved, user update failure is non-critical
+    log.error("User update failed (non-critical):", err);
   }
 
-  // 7️⃣ Send invoice email (non-blocking — never fails the purchase)
+  // 7️⃣ Send invoice email (non-blocking)
   try {
     if (user.email) {
       await sendInvoiceEmail({
@@ -77,11 +81,12 @@ console.log("✅ Updating user:", userId);                   // ADD THIS
         amount,
         paymentId,
         purchaseDate: purchase.createdAt,
+        paymentMethod,
+        emiDetails: paymentMethod === "emi" ? purchaseData.emiDetails : null,
       });
     }
   } catch (emailErr) {
-    console.error("Invoice email failed (non-critical):", emailErr.message);
-    // Never block the purchase flow for email failures
+    log.error("Invoice email failed (non-critical):", emailErr.message);
   }
 
   return purchase;

@@ -27,8 +27,25 @@ const purchaseSchema = new mongoose.Schema(
     },
 
     paymentId: {
-      type: String, // Stripe paymentIntent or Razorpay payment id
+      type: String, // Razorpay payment ID
       required: true,
+    },
+
+    // ── How the student paid ──
+    // "one_time"  → full ₹30,000 paid upfront
+    // "emi"       → paid via EMI (No Cost EMI or regular EMI)
+    paymentMethod: {
+      type: String,
+      enum: ["one_time", "emi"],
+      default: "one_time",
+    },
+
+    // ── EMI details (populated only when paymentMethod === "emi") ──
+    emiDetails: {
+      bank: { type: String, default: null },      // e.g. "HDFC", "ICICI"
+      tenure: { type: Number, default: null },    // e.g. 6 (months)
+      monthlyAmount: { type: Number, default: null }, // e.g. 5000
+      isNoCostEmi: { type: Boolean, default: false },
     },
 
     status: {

@@ -4,12 +4,22 @@ import axios from "axios";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import "../../assets/css/checkout.css";
 
+// Banks that have No Cost EMI offers configured
+const EMI_BANKS = [
+  { name: "BOB", label: "Bank of Baroda" },
+  { name: "AXIS", label: "Axis Bank" },
+  { name: "KOTAK", label: "Kotak Bank" },
+  { name: "HDFC", label: "HDFC Bank" },
+  { name: "ICICI", label: "ICICI Bank" },
+];
+
 export default function CheckoutPayment() {
   const location = useLocation();
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const { user } = useUser();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [emiActive, setEmiActive] = useState(false);
 
   if (!location.state || !location.state.courseId) {
     console.error("Missing courseId in state. Redirecting to courses.");
@@ -18,11 +28,8 @@ export default function CheckoutPayment() {
 
   const { pricing, courseId } = location.state;
   const amount = pricing?.finalPrice || 30000;
-
-  // ── EMI is only shown by Razorpay when amount >= 3000 ──
-  // For ₹1 test payments (AVENTRADEV1 code) we skip the EMI block
-  // so the modal doesn't look broken
   const showEmi = amount >= 3000;
+  const isFullFintechPrice = amount === 30000;
 
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -30,16 +37,17 @@ export default function CheckoutPayment() {
     try {
       const token = await getToken();
 
-      // ── STEP 1: Create Razorpay order ──
+      // ── STEP 1: Create order ──
       const orderRes = await axios.post(
         "/api/payments/create-order",
         { amount, courseId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const { orderId, keyId } = orderRes.data;
+      const { orderId, keyId, emiActive: backendEmiActive, emiOffers } = orderRes.data;
+      setEmiActive(!!backendEmiActive);
 
-      // ── STEP 2: Load Razorpay SDK if not already loaded ──
+      // ── STEP 2: Load Razorpay SDK ──
       if (!window.Razorpay) {
         await new Promise((resolve, reject) => {
           const script = document.createElement("script");
@@ -68,15 +76,15 @@ export default function CheckoutPayment() {
 
         theme: { color: "#0f172a" },
 
-        // ── EMI + payment method display config ──
-        // Only applied when amount >= ₹3,000
-        // Razorpay ignores config.display silently if EMI isn't available
+        // ── Show EMI prominently in payment modal when eligible ──
         ...(showEmi && {
           config: {
             display: {
               blocks: {
                 emi: {
-                  name: "Pay in Easy Installments (EMI)",
+                  name: backendEmiActive
+                    ? "No Cost EMI — ₹5,000 × 6 months (BOB, Axis, Kotak, HDFC, ICICI)"
+                    : "Pay in Easy Installments (EMI)",
                   instruments: [{ method: "emi" }],
                 },
                 other: {
@@ -90,22 +98,17 @@ export default function CheckoutPayment() {
                 },
               },
               sequence: ["block.emi", "block.other"],
-              preferences: {
-                show_default_blocks: false,
-              },
+              preferences: { show_default_blocks: false },
             },
           },
         }),
 
-        // ── STEP 4: On success, fetch fresh token and verify ──
+        // ── STEP 4: On success verify with fresh token ──
         handler: async (response) => {
           console.log("✅ Razorpay success:", response);
           try {
             const freshToken = await getToken();
-
-            if (!freshToken) {
-              throw new Error("Session expired. Please log in again.");
-            }
+            if (!freshToken) throw new Error("Session expired. Please log in again.");
 
             const verifyRes = await axios.post(
               "/api/payments/verify",
@@ -119,38 +122,27 @@ export default function CheckoutPayment() {
               { headers: { Authorization: `Bearer ${freshToken}` } }
             );
 
-            console.log("✅ Verify response:", verifyRes.status, verifyRes.data);
-
             if (verifyRes.status === 201) {
-              navigate("/dashboard", {
-                state: { enrolled: true },
-                replace: true,
-              });
+              navigate("/dashboard", { state: { enrolled: true }, replace: true });
             }
           } catch (verifyErr) {
             console.error("❌ Verify error:", verifyErr.response?.data || verifyErr.message);
             const msg = verifyErr.response?.data?.message || verifyErr.message || "Verification failed";
-
             if (verifyErr.response?.status === 409) {
               alert("ℹ️ You have already purchased this course.");
               navigate("/dashboard", { replace: true });
             } else {
-              alert(
-                `❌ ${msg}\n\nPayment ID: ${response.razorpay_payment_id}\nPlease contact support@aventratechsolution.com with this ID.`
-              );
+              alert(`❌ ${msg}\n\nPayment ID: ${response.razorpay_payment_id}\nPlease contact support@aventratechsolution.com with this ID.`);
             }
           } finally {
             setIsProcessing(false);
           }
         },
 
-        modal: {
-          ondismiss: () => setIsProcessing(false),
-        },
+        modal: { ondismiss: () => setIsProcessing(false) },
       };
 
       const rzp = new window.Razorpay(options);
-
       rzp.on("payment.failed", (response) => {
         console.error("Payment failed:", response.error);
         alert(`❌ Payment failed: ${response.error.description}`);
@@ -180,60 +172,79 @@ export default function CheckoutPayment() {
 
         {/* Order summary */}
         <div style={{
-          background: "#f8fafc",
-          border: "1px solid #e2e8f0",
-          borderRadius: "8px",
-          padding: "20px 24px",
-          marginBottom: "24px",
+          background: "#f8fafc", border: "1px solid #e2e8f0",
+          borderRadius: "8px", padding: "20px 24px", marginBottom: "16px",
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", fontSize: "14px", color: "#475569" }}>
             <span>Base Price</span>
-            <span>₹{pricing?.basePrice || amount}</span>
+            <span>₹{(pricing?.basePrice || amount).toLocaleString()}</span>
           </div>
           {pricing?.discount > 0 && (
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", fontSize: "14px", color: "#16a34a" }}>
               <span>Referral Discount</span>
-              <span>- ₹{pricing.discount}</span>
+              <span>- ₹{pricing.discount.toLocaleString()}</span>
             </div>
           )}
           <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "12px 0" }} />
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: "17px", color: "#0f172a" }}>
             <span>Total Payable</span>
-            <strong>₹{amount}</strong>
+            <strong>₹{amount.toLocaleString()}</strong>
           </div>
         </div>
 
-        {/* EMI info banner — only shown when amount >= ₹3000 */}
-        {showEmi && (
+        {/* No Cost EMI banner — FinTech full price only */}
+        {isFullFintechPrice && (
           <div style={{
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
-            borderRadius: "8px",
-            padding: "14px 18px",
-            marginBottom: "16px",
-            fontSize: "13px",
-            color: "#1d4ed8",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
+            background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+            border: "1px solid #86efac", borderRadius: "10px",
+            padding: "16px 18px", marginBottom: "12px",
           }}>
-            <span style={{ fontSize: "18px" }}>💳</span>
-            <div>
-              <strong>EMI available</strong> — Pay in easy monthly installments starting from ₹{Math.round(amount / 12).toLocaleString()}/month.
-              EMI options will appear in the next step.
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+              <span style={{ fontSize: "22px", flexShrink: 0 }}>🎉</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "14px", color: "#15803d", marginBottom: "6px" }}>
+                  No Cost EMI — ₹5,000 × 6 months
+                </div>
+                <div style={{ fontSize: "13px", color: "#166534", lineHeight: 1.5, marginBottom: "10px" }}>
+                  Zero interest, zero extra charges. Select EMI in the next step and choose the 6-month plan.
+                </div>
+                {/* Bank chips */}
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  {EMI_BANKS.map((bank) => (
+                    <span key={bank.name} style={{
+                      background: "#ffffff", border: "1px solid #86efac",
+                      borderRadius: "99px", padding: "3px 10px",
+                      fontSize: "11px", fontWeight: 600, color: "#15803d",
+                    }}>
+                      {bank.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Post-payment info */}
+        {/* Regular EMI banner — discounted price */}
+        {showEmi && !isFullFintechPrice && (
+          <div style={{
+            background: "#eff6ff", border: "1px solid #bfdbfe",
+            borderRadius: "8px", padding: "14px 18px", marginBottom: "12px",
+            fontSize: "13px", color: "#1d4ed8",
+            display: "flex", alignItems: "center", gap: "10px",
+          }}>
+            <span style={{ fontSize: "18px" }}>💳</span>
+            <div>
+              <strong>EMI available</strong> — Pay in easy monthly installments. EMI options will appear in the next step.
+            </div>
+          </div>
+        )}
+
+        {/* Post payment info */}
         <div style={{
-          background: "#f0fdf4",
-          border: "1px solid #86efac",
-          borderRadius: "8px",
-          padding: "14px 18px",
-          marginBottom: "24px",
-          fontSize: "13px",
-          color: "#166534",
+          background: "#f0fdf4", border: "1px solid #86efac",
+          borderRadius: "8px", padding: "14px 18px", marginBottom: "24px",
+          fontSize: "13px", color: "#166534",
         }}>
           ✅ After payment, you'll receive an invoice + welcome email and be redirected to your dashboard instantly.
         </div>
@@ -244,11 +255,15 @@ export default function CheckoutPayment() {
           disabled={isProcessing}
           style={{ opacity: isProcessing ? 0.7 : 1 }}
         >
-          {isProcessing ? "Processing..." : `Pay ₹${amount.toLocaleString()} with Razorpay`}
+          {isProcessing
+            ? "Processing..."
+            : isFullFintechPrice
+            ? "Pay ₹30,000 · or No Cost EMI ₹5,000×6"
+            : `Pay ₹${amount.toLocaleString()} with Razorpay`}
         </button>
 
         <p style={{ marginTop: 14, fontSize: 13, opacity: 0.7, textAlign: "center" }}>
-          🔒 Secured by Razorpay · UPI · Cards · Netbanking · EMI
+          🔒 Secured by Razorpay · UPI · Cards · Netbanking · No Cost EMI
         </p>
       </div>
     </div>
