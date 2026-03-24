@@ -23,7 +23,21 @@ function handleValidation(req, res) {
 
 const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID || "698dee27e56d0404b2ec951c";
 
-function getEmiOffers() {
+// ── Returns first available EMI offer ID from env ──
+// Razorpay Standard only supports one offer_id per order.
+// The student's bank determines which offer applies automatically.
+function getPrimaryEmiOffer() {
+  const offers = [
+    process.env.RAZORPAY_EMI_OFFER_HDFC,   // prioritise HDFC (most common)
+    process.env.RAZORPAY_EMI_OFFER_ICICI,
+    process.env.RAZORPAY_EMI_OFFER_AXIS,
+    process.env.RAZORPAY_EMI_OFFER_KOTAK,
+    process.env.RAZORPAY_EMI_OFFER_BOB,
+  ].filter(Boolean);
+  return offers[0] || null;
+}
+
+function getAllEmiOffers() {
   return [
     process.env.RAZORPAY_EMI_OFFER_BOB,
     process.env.RAZORPAY_EMI_OFFER_AXIS,
@@ -54,6 +68,7 @@ router.post(
       const razorpay = getRazorpay();
       const log = global.logger || console;
 
+      // ── Clean minimal order payload ──
       const orderPayload = {
         amount: Math.round(amount * 100),
         currency: "INR",
@@ -62,15 +77,16 @@ router.post(
         payment_capture: 1,
       };
 
+      // ── Attach single offer_id for No Cost EMI ──
+      // Only for FinTech at full ₹30,000 — Standard plan supports one offer_id only
       const isFintech = courseId === FINTECH_COURSE_ID;
       const isFullPrice = Math.round(amount) === 30000;
-      const emiOffers = getEmiOffers();
-      const emiActive = isFintech && isFullPrice && emiOffers.length > 0;
+      const primaryOffer = getPrimaryEmiOffer();
+      const emiActive = isFintech && isFullPrice && !!primaryOffer;
 
       if (emiActive) {
-        orderPayload.offer_id = emiOffers[0];
-        orderPayload.offers = emiOffers;
-        log.info(`No Cost EMI offers attached: ${emiOffers.length} banks`);
+        orderPayload.offer_id = primaryOffer;
+        log.info(`No Cost EMI offer attached: ${primaryOffer}`);
       }
 
       const order = await razorpay.orders.create(orderPayload);
@@ -82,7 +98,6 @@ router.post(
         currency: order.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
         emiActive,
-        emiOffers: emiActive ? emiOffers : [],
       });
 
     } catch (err) {
@@ -133,9 +148,7 @@ router.post(
         return res.status(400).json({ message: "Payment verification failed: invalid signature" });
       }
 
-      // ── Fetch payment details from Razorpay to detect EMI ──
-      // Razorpay payment object contains method: "emi" if student paid via EMI
-      // and emi object with bank, tenure details
+      // ── Detect EMI vs one_time from Razorpay payment object ──
       let paymentMethod = "one_time";
       let emiDetails = null;
 
@@ -149,26 +162,20 @@ router.post(
             bank: paymentDetails.bank || null,
             tenure: paymentDetails.emi?.tenure || null,
             monthlyAmount: paymentDetails.emi?.installment_amount
-              ? paymentDetails.emi.installment_amount / 100  // paise → rupees
+              ? Math.round(paymentDetails.emi.installment_amount / 100)
               : null,
             isNoCostEmi: paymentDetails.offer_id
-              ? getEmiOffers().includes(paymentDetails.offer_id)
+              ? getAllEmiOffers().includes(paymentDetails.offer_id)
               : false,
           };
-          log.info(`EMI payment detected — bank: ${emiDetails.bank} | tenure: ${emiDetails.tenure}mo | No Cost: ${emiDetails.isNoCostEmi}`);
-        } else {
-          log.info(`One-time payment detected — method: ${paymentDetails.method}`);
+          log.info(`EMI detected — bank: ${emiDetails.bank} | ${emiDetails.tenure}mo | NoCost: ${emiDetails.isNoCostEmi}`);
         }
       } catch (fetchErr) {
-        // Non-critical — if fetch fails, default to one_time
-        // Purchase still completes correctly
-        log.error("Payment fetch for method detection failed (non-critical):", fetchErr.message);
+        log.error("Payment fetch failed (non-critical):", fetchErr.message);
       }
 
       const purchase = await completePurchase({
-        userId,
-        courseId,
-        amount,
+        userId, courseId, amount,
         paymentProvider: "razorpay",
         paymentId: razorpay_payment_id,
         paymentMethod,
