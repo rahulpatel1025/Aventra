@@ -23,18 +23,14 @@ function handleValidation(req, res) {
 
 const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID || "698dee27e56d0404b2ec951c";
 
-// ── Returns first available EMI offer ID from env ──
-// Razorpay Standard only supports one offer_id per order.
-// The student's bank determines which offer applies automatically.
 function getPrimaryEmiOffer() {
-  const offers = [
-    process.env.RAZORPAY_EMI_OFFER_HDFC,   // prioritise HDFC (most common)
+  return [
+    process.env.RAZORPAY_EMI_OFFER_HDFC,
     process.env.RAZORPAY_EMI_OFFER_ICICI,
     process.env.RAZORPAY_EMI_OFFER_AXIS,
     process.env.RAZORPAY_EMI_OFFER_KOTAK,
     process.env.RAZORPAY_EMI_OFFER_BOB,
-  ].filter(Boolean);
-  return offers[0] || null;
+  ].filter(Boolean)[0] || null;
 }
 
 function getAllEmiOffers() {
@@ -68,7 +64,6 @@ router.post(
       const razorpay = getRazorpay();
       const log = global.logger || console;
 
-      // ── Clean minimal order payload ──
       const orderPayload = {
         amount: Math.round(amount * 100),
         currency: "INR",
@@ -77,8 +72,6 @@ router.post(
         payment_capture: 1,
       };
 
-      // ── Attach single offer_id for No Cost EMI ──
-      // Only for FinTech at full ₹30,000 — Standard plan supports one offer_id only
       const isFintech = courseId === FINTECH_COURSE_ID;
       const isFullPrice = Math.round(amount) === 30000;
       const primaryOffer = getPrimaryEmiOffer();
@@ -117,6 +110,8 @@ router.post(
     body("razorpay_order_id").trim().notEmpty().withMessage("Razorpay order ID is required"),
     body("razorpay_payment_id").trim().notEmpty().withMessage("Razorpay payment ID is required"),
     body("razorpay_signature").trim().notEmpty().withMessage("Razorpay signature is required"),
+    // referralCode is optional
+    body("referralCode").optional().trim().isLength({ max: 30 }),
   ],
   async (req, res) => {
     const validationError = handleValidation(req, res);
@@ -132,10 +127,11 @@ router.post(
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
+        referralCode,
       } = req.body;
 
       const log = global.logger || console;
-      log.info(`Verify — userId: ${userId} | courseId: ${courseId} | paymentId: ${razorpay_payment_id}`);
+      log.info(`Verify — userId: ${userId} | courseId: ${courseId} | paymentId: ${razorpay_payment_id} | referral: ${referralCode || "none"}`);
 
       // ── HMAC signature verification ──
       const expectedSignature = crypto
@@ -148,7 +144,7 @@ router.post(
         return res.status(400).json({ message: "Payment verification failed: invalid signature" });
       }
 
-      // ── Detect EMI vs one_time from Razorpay payment object ──
+      // ── Detect EMI vs one_time ──
       let paymentMethod = "one_time";
       let emiDetails = null;
 
@@ -175,14 +171,17 @@ router.post(
       }
 
       const purchase = await completePurchase({
-        userId, courseId, amount,
+        userId,
+        courseId,
+        amount,
         paymentProvider: "razorpay",
         paymentId: razorpay_payment_id,
         paymentMethod,
         emiDetails,
+        referralCode: referralCode || null,
       });
 
-      log.info(`Purchase saved: ${purchase._id} | method: ${paymentMethod}`);
+      log.info(`Purchase saved: ${purchase._id} | method: ${paymentMethod} | referral: ${referralCode || "none"}`);
 
       return res.status(201).json({
         message: "Purchase completed successfully",

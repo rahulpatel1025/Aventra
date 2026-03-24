@@ -8,6 +8,12 @@ const purchaseSchema = new mongoose.Schema(
       index: true,
     },
 
+    // ── Student name stored directly for easy admin queries ──
+    studentName: {
+      type: String,
+      default: null,
+    },
+
     courseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
@@ -27,25 +33,29 @@ const purchaseSchema = new mongoose.Schema(
     },
 
     paymentId: {
-      type: String, // Razorpay payment ID
+      type: String,
       required: true,
     },
 
-    // ── How the student paid ──
-    // "one_time"  → full ₹30,000 paid upfront
-    // "emi"       → paid via EMI (No Cost EMI or regular EMI)
+    // "one_time" → full upfront payment
+    // "emi"      → paid via EMI
     paymentMethod: {
       type: String,
       enum: ["one_time", "emi"],
       default: "one_time",
     },
 
-    // ── EMI details (populated only when paymentMethod === "emi") ──
     emiDetails: {
-      bank: { type: String, default: null },      // e.g. "HDFC", "ICICI"
-      tenure: { type: Number, default: null },    // e.g. 6 (months)
-      monthlyAmount: { type: Number, default: null }, // e.g. 5000
+      bank: { type: String, default: null },
+      tenure: { type: Number, default: null },
+      monthlyAmount: { type: Number, default: null },
       isNoCostEmi: { type: Boolean, default: false },
+    },
+
+    // ── Referral code used at checkout (null if none) ──
+    referralCode: {
+      type: String,
+      default: null,
     },
 
     status: {

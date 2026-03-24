@@ -17,6 +17,7 @@ export default function CheckoutReferral() {
   const [referralCode, setReferralCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [appliedLabel, setAppliedLabel] = useState("");
+  const [appliedCode, setAppliedCode] = useState(null); // store validated code
   const [invalid, setInvalid] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
 
@@ -30,9 +31,9 @@ export default function CheckoutReferral() {
     setIsApplying(true);
     setInvalid(false);
     setAppliedLabel("");
+    setAppliedCode(null);
 
     try {
-      // ── Validate on backend — codes are never in the frontend bundle ──
       const res = await axios.post("/api/referral/validate", {
         code,
         coursePrice: basePrice,
@@ -41,12 +42,12 @@ export default function CheckoutReferral() {
       if (res.data.valid) {
         setDiscount(res.data.discount);
         setAppliedLabel(res.data.label);
+        setAppliedCode(code.toUpperCase()); // save for forwarding
       } else {
         setDiscount(0);
         setInvalid(true);
       }
     } catch (err) {
-      console.error("Referral validation error:", err);
       setDiscount(0);
       setInvalid(true);
     } finally {
@@ -71,6 +72,8 @@ export default function CheckoutReferral() {
           basePrice,
           discount,
           finalPrice,
+          // ── Pass referral code forward so it gets stored in MongoDB ──
+          referralCode: appliedCode || null,
         },
       },
     });
@@ -105,6 +108,7 @@ export default function CheckoutReferral() {
                 setReferralCode(e.target.value);
                 setInvalid(false);
                 setAppliedLabel("");
+                setAppliedCode(null);
                 setDiscount(0);
               }}
               onKeyDown={(e) => e.key === "Enter" && applyReferral()}
@@ -115,12 +119,12 @@ export default function CheckoutReferral() {
           </div>
 
           {appliedLabel && (
-            <p style={{ color: "#16a34a", fontSize: 13, fontWeight: 600, marginTop: 6 }}>
+            <p style={{ color:"#16a34a", fontSize:13, fontWeight:600, marginTop:6 }}>
               ✅ {appliedLabel}
             </p>
           )}
           {invalid && (
-            <p style={{ color: "#dc2626", fontSize: 13, marginTop: 6 }}>
+            <p style={{ color:"#dc2626", fontSize:13, marginTop:6 }}>
               ❌ Invalid referral code
             </p>
           )}

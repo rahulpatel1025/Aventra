@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Purchase = require("../models/Purchase");
 const User = require("../models/User");
 const Course = require("../models/Course");
-const { sendInvoiceEmail } = require("./emailService");
+const { sendInvoiceEmail, sendBenefitsEmail } = require("./emailService");
 
 async function completePurchase({
   userId,
@@ -10,12 +10,13 @@ async function completePurchase({
   amount,
   paymentProvider,
   paymentId,
-  paymentMethod = "one_time", // "one_time" | "emi"
-  emiDetails = null,           // { bank, tenure, monthlyAmount, isNoCostEmi }
+  paymentMethod = "one_time",
+  emiDetails = null,
+  referralCode = null,   // e.g. "MINI10", "AVENTRA1000", "AVENTRADEV1"
 }) {
   const log = global.logger || console;
 
-  // 1️⃣ Validate courseId format
+  // 1️⃣ Validate courseId
   if (!mongoose.Types.ObjectId.isValid(courseId)) {
     throw new Error("Invalid course ID");
   }
@@ -35,15 +36,16 @@ async function completePurchase({
   // 5️⃣ Build purchase document
   const purchaseData = {
     userId,
+    studentName: user.fullName || null,
     courseId: course._id,
     amount,
     paymentProvider,
     paymentId,
     paymentMethod,
+    referralCode: referralCode ? referralCode.toUpperCase() : null,
     status: "completed",
   };
 
-  // Attach EMI details only when payment is via EMI
   if (paymentMethod === "emi" && emiDetails) {
     purchaseData.emiDetails = {
       bank: emiDetails.bank || null,
@@ -54,7 +56,7 @@ async function completePurchase({
   }
 
   const purchase = await Purchase.create(purchaseData);
-  log.info(`Purchase saved: ${purchase._id} | method: ${paymentMethod}`);
+  log.info(`Purchase saved: ${purchase._id} | student: ${user.fullName} | method: ${paymentMethod} | referral: ${referralCode || "none"}`);
 
   // 6️⃣ Update user dashboard
   try {
@@ -83,10 +85,30 @@ async function completePurchase({
         purchaseDate: purchase.createdAt,
         paymentMethod,
         emiDetails: paymentMethod === "emi" ? purchaseData.emiDetails : null,
+        referralCode,
       });
     }
   } catch (emailErr) {
     log.error("Invoice email failed (non-critical):", emailErr.message);
+  }
+
+  // 8️⃣ Send MINI10 benefits email if that referral code was used
+  // Runs after invoice email — completely separate, non-blocking
+  try {
+    if (
+      referralCode &&
+      referralCode.toUpperCase() === "MINI10" &&
+      user.email
+    ) {
+      await sendBenefitsEmail({
+        toEmail: user.email,
+        studentName: user.fullName || "Student",
+        courseName: course.title || course.name || "Your Course",
+      });
+      log.info(`MINI10 benefits email sent to ${user.email}`);
+    }
+  } catch (benefitsErr) {
+    log.error("Benefits email failed (non-critical):", benefitsErr.message);
   }
 
   return purchase;
