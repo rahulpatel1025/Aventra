@@ -21,6 +21,8 @@ function handleValidation(req, res) {
   return null;
 }
 
+const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID || "698dee27e56d0404b2ec951c";
+
 // ================= CREATE ORDER =================
 router.post(
   "/create-order",
@@ -41,37 +43,37 @@ router.post(
     try {
       const { amount, courseId } = req.body;
       const razorpay = getRazorpay();
+      const log = global.logger || console;
 
+      // ── Clean order payload — no method_options (not supported on Standard plan) ──
       const orderPayload = {
-        amount: Math.round(amount * 100), // paise
+        amount: Math.round(amount * 100),
         currency: "INR",
         receipt: `r_${Date.now()}`,
         notes: { courseId },
-        // payment_capture: 1 ensures auto-capture — required for EMI flows
         payment_capture: 1,
       };
 
-      // ── EMI-specific: only add method config when amount >= ₹3000 ──
-      // Razorpay requires the order to be >= ₹3000 for EMI to be offered
-      // Adding this to orders below ₹3000 causes a Razorpay API error
-      if (amount >= 3000) {
-        orderPayload.method_options = {
-          emi: {
-            enabled: true,
-          },
-        };
+      // ── Attach No Cost EMI offer only for FinTech at full ₹30,000 ──
+      const isFintech = courseId === FINTECH_COURSE_ID;
+      const isFullPrice = Math.round(amount) === 30000;
+      const offerId = process.env.RAZORPAY_FINTECH_EMI_OFFER_ID;
+
+      if (isFintech && isFullPrice && offerId) {
+        orderPayload.offer_id = offerId;
+        log.info(`No Cost EMI offer applied: ${offerId}`);
       }
 
       const order = await razorpay.orders.create(orderPayload);
 
-      const log = global.logger || console;
-      log.info(`Order created: ${order.id} | amount: ₹${amount} | EMI: ${amount >= 3000}`);
+      log.info(`Order created: ${order.id} | ₹${amount}`);
 
       return res.status(200).json({
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
+        noCoastEmiActive: !!(isFintech && isFullPrice && offerId),
       });
 
     } catch (err) {
@@ -86,18 +88,11 @@ router.post(
 router.post(
   "/verify",
   [
-    body("courseId")
-      .trim().notEmpty().withMessage("Course ID is required")
-      .isMongoId().withMessage("Invalid course ID format"),
-    body("amount")
-      .isNumeric().withMessage("Amount must be a number")
-      .custom((val) => val >= 1).withMessage("Amount must be at least 1"),
-    body("razorpay_order_id")
-      .trim().notEmpty().withMessage("Razorpay order ID is required"),
-    body("razorpay_payment_id")
-      .trim().notEmpty().withMessage("Razorpay payment ID is required"),
-    body("razorpay_signature")
-      .trim().notEmpty().withMessage("Razorpay signature is required"),
+    body("courseId").trim().notEmpty().withMessage("Course ID is required").isMongoId().withMessage("Invalid course ID format"),
+    body("amount").isNumeric().withMessage("Amount must be a number").custom((val) => val >= 1).withMessage("Amount must be at least 1"),
+    body("razorpay_order_id").trim().notEmpty().withMessage("Razorpay order ID is required"),
+    body("razorpay_payment_id").trim().notEmpty().withMessage("Razorpay payment ID is required"),
+    body("razorpay_signature").trim().notEmpty().withMessage("Razorpay signature is required"),
   ],
   async (req, res) => {
     const validationError = handleValidation(req, res);
@@ -109,17 +104,10 @@ router.post(
 
       if (!userId) return res.status(401).json({ message: "Unauthorized user" });
 
-      const {
-        courseId, amount,
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-      } = req.body;
-
+      const { courseId, amount, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
       const log = global.logger || console;
       log.info(`Verify — userId: ${userId} | courseId: ${courseId} | paymentId: ${razorpay_payment_id}`);
 
-      // ── HMAC signature verification ──
       const expectedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -131,9 +119,7 @@ router.post(
       }
 
       const purchase = await completePurchase({
-        userId,
-        courseId,
-        amount,
+        userId, courseId, amount,
         paymentProvider: "razorpay",
         paymentId: razorpay_payment_id,
       });
@@ -143,13 +129,9 @@ router.post(
 
     } catch (err) {
       const log = global.logger || console;
-      if (err.message === "Course already purchased")
-        return res.status(409).json({ message: err.message });
-      if (err.message === "Course not found")
-        return res.status(404).json({ message: err.message });
-      if (err.message === "User not found in database")
-        return res.status(404).json({ message: err.message });
-
+      if (err.message === "Course already purchased") return res.status(409).json({ message: err.message });
+      if (err.message === "Course not found") return res.status(404).json({ message: err.message });
+      if (err.message === "User not found in database") return res.status(404).json({ message: err.message });
       log.error("Payment verification error:", err);
       return res.status(500).json({ message: "Payment verification failed" });
     }
