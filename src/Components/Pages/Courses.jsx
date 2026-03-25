@@ -113,7 +113,7 @@ export default function Courses() {
           position: relative;
           border-radius: 20px;
           padding: 28px 36px;
-          margin-bottom: 48px;
+          margin-bottom: 8px;
           overflow: hidden;
           animation: bannerPulse 3s ease-in-out infinite;
           transition: background 0.4s ease, border 0.4s ease;
