@@ -23,23 +23,16 @@ function handleValidation(req, res) {
 
 const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID || "698dee27e56d0404b2ec951c";
 
-function getPrimaryEmiOffer() {
-  return [
-    process.env.RAZORPAY_EMI_OFFER_HDFC,
-    process.env.RAZORPAY_EMI_OFFER_ICICI,
-    process.env.RAZORPAY_EMI_OFFER_AXIS,
-    process.env.RAZORPAY_EMI_OFFER_KOTAK,
-    process.env.RAZORPAY_EMI_OFFER_BOB,
-  ].filter(Boolean)[0] || null;
-}
-
+// ── All 5 public No Cost EMI offer IDs ──
+// All offers have Checkout Visibility: Yes so Razorpay auto-applies
+// the matching one based on the student's card at checkout.
 function getAllEmiOffers() {
   return [
-    process.env.RAZORPAY_EMI_OFFER_BOB,
-    process.env.RAZORPAY_EMI_OFFER_AXIS,
-    process.env.RAZORPAY_EMI_OFFER_KOTAK,
-    process.env.RAZORPAY_EMI_OFFER_HDFC,
-    process.env.RAZORPAY_EMI_OFFER_ICICI,
+    process.env.RAZORPAY_EMI_OFFER_BOB,    // offer_SVMAFKGE5EQCRy
+    process.env.RAZORPAY_EMI_OFFER_AXIS,   // offer_SVMEUsGDYcv6M8
+    process.env.RAZORPAY_EMI_OFFER_KOTAK,  // offer_SVMC5vuVvJuSh9
+    process.env.RAZORPAY_EMI_OFFER_HDFC,   // offer_SVMHv4vcNLviee
+    process.env.RAZORPAY_EMI_OFFER_ICICI,  // offer_SVMG3NIHDqQv2y
   ].filter(Boolean);
 }
 
@@ -72,14 +65,18 @@ router.post(
         payment_capture: 1,
       };
 
+      // ── Attach all 5 offers for FinTech at full ₹30,000 only ──
+      // Since offers are public, Razorpay picks the right one
+      // automatically based on the student's card bank.
+      // Razorpay accepts offers as an array when they are public offers.
       const isFintech = courseId === FINTECH_COURSE_ID;
       const isFullPrice = Math.round(amount) === 30000;
-      const primaryOffer = getPrimaryEmiOffer();
-      const emiActive = isFintech && isFullPrice && !!primaryOffer;
+      const emiOffers = getAllEmiOffers();
+      const emiActive = isFintech && isFullPrice && emiOffers.length > 0;
 
       if (emiActive) {
-        orderPayload.offer_id = primaryOffer;
-        log.info(`No Cost EMI offer attached: ${primaryOffer}`);
+        orderPayload.offers = emiOffers;
+        log.info(`No Cost EMI — ${emiOffers.length} bank offers attached: ${emiOffers.join(", ")}`);
       }
 
       const order = await razorpay.orders.create(orderPayload);
@@ -110,7 +107,6 @@ router.post(
     body("razorpay_order_id").trim().notEmpty().withMessage("Razorpay order ID is required"),
     body("razorpay_payment_id").trim().notEmpty().withMessage("Razorpay payment ID is required"),
     body("razorpay_signature").trim().notEmpty().withMessage("Razorpay signature is required"),
-    // referralCode is optional
     body("referralCode").optional().trim().isLength({ max: 30 }),
   ],
   async (req, res) => {
@@ -144,7 +140,7 @@ router.post(
         return res.status(400).json({ message: "Payment verification failed: invalid signature" });
       }
 
-      // ── Detect EMI vs one_time ──
+      // ── Detect EMI vs one_time from Razorpay payment object ──
       let paymentMethod = "one_time";
       let emiDetails = null;
 
