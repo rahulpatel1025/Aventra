@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 .vite
 
+cloudfront_private_key.pem
+cloudfront_public_key.pem
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,0 +1,200 @@
+.cvl-wrapper {
+  width: 100%;
+}
+
+.cvl-header {
+  margin-bottom: 20px;
+}
+
+.cvl-course-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 10px;
+}
+
+.cvl-overall-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
+}
+
+.cvl-overall-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  max-width: 300px;
+}
+
+.cvl-overall-bar {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.cvl-pct {
+  font-weight: 700;
+  color: #2563eb;
+  min-width: 36px;
+}
+
+/* Two-column layout on desktop */
+.cvl-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .cvl-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Locked player placeholder */
+.cvl-locked-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 280px;
+  background: #0f172a;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.cvl-lock-icon {
+  font-size: 40px;
+}
+
+/* Video list panel */
+.cvl-list {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cvl-list-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary, #64748b);
+  background: var(--surface, #f8fafc);
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cvl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.cvl-item:last-child {
+  border-bottom: none;
+}
+
+.cvl-item:hover:not(.cvl-item--locked) {
+  background: var(--surface-hover, #f1f5f9);
+}
+
+.cvl-item--active {
+  background: #eff6ff;
+  border-left: 3px solid #2563eb;
+}
+
+.cvl-item--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cvl-item--completed .cvl-item-title {
+  color: #10b981;
+}
+
+.cvl-item-icon {
+  font-size: 14px;
+  min-width: 20px;
+  margin-top: 2px;
+}
+
+.cvl-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cvl-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #1e293b);
+  line-height: 1.4;
+}
+
+.cvl-item-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.cvl-item-subtext--done {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Mini progress bar on list item */
+.cvl-item-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e2e8f0;
+}
+
+.cvl-item-progress-fill {
+  height: 100%;
+  background: #2563eb;
+  transition: width 0.3s;
+}
+
+/* Dark mode */
+body.dark-mode .cvl-course-name { color: #f1f5f9; }
+body.dark-mode .cvl-overall-bar-wrap { background: #334155; }
+body.dark-mode .cvl-list { border-color: #334155; }
+body.dark-mode .cvl-list-header { background: #1e293b; color: #94a3b8; border-bottom-color: #334155; }
+body.dark-mode .cvl-item { background: #1e293b; border-bottom-color: #334155; }
+body.dark-mode .cvl-item:hover:not(.cvl-item--locked) { background: #0f172a; }
+body.dark-mode .cvl-item--active { background: #1e3a5f; border-left-color: #2563eb; }
+body.dark-mode .cvl-item-title { color: #e2e8f0; }
+body.dark-mode .cvl-item-progress { background: #334155; }
+body.dark-mode .cvl-locked-player { background: #0f172a; }
+
+/* Loading / error states */
+.cvl-loading, .cvl-error {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.cvl-error { color: #ef4444; }
