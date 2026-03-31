@@ -16,8 +16,9 @@ let CLOUDFRONT_PRIVATE_KEY = "";
 
 if (process.env.CLOUDFRONT_PRIVATE_KEY) {
   CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
-    .replace(/\\n/g, "\n")   // convert escaped newlines
-    .replace(/\r/g, "")      // remove carriage returns
+    .replace(/\\+n/g, "\n")  // Turns \n, \\n, \\\n, or \\\\n into a real line break
+    .replace(/"/g, "")       // Deletes any hidden quotes
+    .replace(/\\/g, "")      // Deletes any stray trailing backslashes
     .trim();
 } else {
   console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
