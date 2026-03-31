@@ -1,29 +1,32 @@
 const express = require("express");
 const router = express.Router();
+const fs = require("fs");
+const path = require("path");
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
 const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
-
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
-// ── CloudFront config ──
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
-const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID;
+// ── CloudFront config from env ──
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
+const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
 
-// ── Private key from ENV ──
-const CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
-  ? process.env.CLOUDFRONT_PRIVATE_KEY
-      .replace(/\\n/g, "\n")
-      .replace(/\r/g, "")
-      .trim()
-  : null;
+let CLOUDFRONT_PRIVATE_KEY = "";
 
-if (!CLOUDFRONT_PRIVATE_KEY) {
-  console.error("❌ CLOUDFRONT_PRIVATE_KEY missing in ENV");
+if (process.env.CLOUDFRONT_PRIVATE_KEY) {
+  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
+    .replace(/^["']|["']$/g, "") // 1. Strip hidden quotes Hostinger might wrap around the string
+    .replace(/\\+n/g, "\n")      // 2. Convert the literal "\n" text into real, actual line breaks
+    .replace(/\r/g, "")          // 3. Destroy Windows carriage returns that crash Linux OpenSSL
+    .trim();                     // 4. Clean up any accidental spaces at the very beginning or end
+    
+} else {
+  console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
 }
 
-// ── FinTech video catalogue ──
+
+// ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
   { videoId: "FT01", index: 0, title: "Introduction to FinTech & Digital Platforms" },
   { videoId: "FT02", index: 1, title: "Digital Payment Systems" },
@@ -37,9 +40,8 @@ const FINTECH_VIDEOS = [
   { videoId: "FT10", index: 9, title: "Capstone: Building a FinTech Product" },
 ];
 
-const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID;
+const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID; 
 
-// ── Helpers ──
 function getVideoCatalogue(courseId) {
   if (courseId === FINTECH_COURSE_ID) return FINTECH_VIDEOS;
   return null;
@@ -60,15 +62,29 @@ async function verifyEnrollment(userId, courseId) {
   return user.purchasedCourses.some((id) => id.toString() === courseId);
 }
 
-// ── Generate CloudFront signed URL ──
+// ── Generate a Custom Policy for the entire folder ──
 function generateSignedUrl(videoId, s3Key) {
+  const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
+
+  // This policy allows access to anything inside the specific video folder (/*)
+  const customPolicy = JSON.stringify({
+    Statement: [
+      {
+        Resource: `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/*`,
+        Condition: {
+          DateLessThan: { "AWS:EpochTime": expiresAt },
+        },
+      },
+    ],
+  });
+
   const url = `https://${CLOUDFRONT_DOMAIN}/${s3Key}`;
 
   return getSignedUrl({
     url,
     keyPairId: CLOUDFRONT_KEY_ID,
     privateKey: CLOUDFRONT_PRIVATE_KEY,
-    dateLessThan: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
+    policy: customPolicy,
   });
 }
 
@@ -86,32 +102,28 @@ router.get(
       const { courseId } = req.params;
 
       const enrolled = await verifyEnrollment(userId, courseId);
-      if (!enrolled) return res.status(403).json({ error: "Not enrolled" });
+      if (!enrolled) return res.status(403).json({ error: "Not enrolled in this course" });
 
       const catalogue = getVideoCatalogue(courseId);
-      if (!catalogue) return res.status(404).json({ error: "Course not found" });
+      if (!catalogue) return res.status(404).json({ error: "Course video catalogue not found" });
 
       const progressRecords = await VideoProgress.find({ userId, courseId });
       const progressMap = {};
-      progressRecords.forEach((p) => {
-        progressMap[p.videoId] = p;
-      });
+      progressRecords.forEach((p) => { progressMap[p.videoId] = p; });
 
       const videos = catalogue.map((video, i) => {
         const progress = progressMap[video.videoId];
         const completed = progress?.completed || false;
         const watchPercent = progress?.watchPercent || 0;
 
-        const previousCompleted =
-          i === 0
-            ? true
-            : progressMap[catalogue[i - 1].videoId]?.completed || false;
+        const previousCompleted = i === 0 ? true : progressMap[catalogue[i - 1].videoId]?.completed || false;
+        const isLocked = !previousCompleted;
 
         return {
           videoId: video.videoId,
           index: video.index,
           title: video.title,
-          isLocked: !previousCompleted,
+          isLocked,
           completed,
           watchPercent,
         };
@@ -119,7 +131,8 @@ router.get(
 
       res.json({ videos });
     } catch (err) {
-      console.error("Catalogue fetch error:", err);
+      const log = global.logger || console;
+      log.error("Catalogue fetch error:", err);
       res.status(500).json({ error: "Server error" });
     }
   }
@@ -132,10 +145,7 @@ router.get(
   [
     query("courseId").isMongoId().withMessage("Invalid courseId"),
     query("videoId").trim().notEmpty().withMessage("videoId is required"),
-    query("quality")
-      .optional()
-      .isIn(["1080p", "720p", "360p"])
-      .withMessage("Invalid quality"),
+    query("quality").optional().isIn(["1080p", "720p", "360p"]).withMessage("Invalid quality"),
   ],
   async (req, res) => {
     const validationError = handleValidation(req, res);
@@ -146,7 +156,7 @@ router.get(
       const { courseId, videoId, quality = "720p" } = req.query;
 
       const enrolled = await verifyEnrollment(userId, courseId);
-      if (!enrolled) return res.status(403).json({ error: "Not enrolled" });
+      if (!enrolled) return res.status(403).json({ error: "Not enrolled in this course" });
 
       const catalogue = getVideoCatalogue(courseId);
       if (!catalogue) return res.status(404).json({ error: "Course not found" });
@@ -154,7 +164,6 @@ router.get(
       const videoMeta = catalogue.find((v) => v.videoId === videoId);
       if (!videoMeta) return res.status(404).json({ error: "Video not found" });
 
-      // Sequential gating
       if (videoMeta.index > 0) {
         const prevVideo = catalogue[videoMeta.index - 1];
         const prevProgress = await VideoProgress.findOne({
@@ -163,7 +172,6 @@ router.get(
           videoId: prevVideo.videoId,
           completed: true,
         });
-
         if (!prevProgress) {
           return res.status(403).json({
             error: "Complete the previous video first",
@@ -174,10 +182,11 @@ router.get(
       }
 
       const s3Key = `streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
-
+      
       const signedUrl = generateSignedUrl(videoId, s3Key);
 
-      console.log(`Signed URL generated: ${videoId}`);
+      const log = global.logger || console;
+      log.info(`Signed URL issued: userId=${userId} videoId=${videoId} quality=${quality}`);
 
       res.json({
         signedUrl,
@@ -188,8 +197,16 @@ router.get(
         expiresInSeconds: 7200,
       });
     } catch (err) {
-      console.error("Signed URL error:", err);
-      res.status(500).json({ error: "Failed to generate video URL" });
+      const log = global.logger || console;
+      log.error("Signed URL error:", err);
+     res.status(500).json({ 
+        error: "Server error",
+        debugMessage: "Failed to sign CloudFront URL", 
+        exactError: err.message,
+        keyLength: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.length : 0,
+        keyPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.substring(0, 40) : "MISSING",
+        keyEndPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.slice(-40) : "MISSING"
+      });
     }
   }
 );
