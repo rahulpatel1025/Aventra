@@ -21,7 +21,7 @@ if (process.env.CLOUDFRONT_PRIVATE_KEY) {
 } else {
   // If no Env key, look for the local file (Development)
   try {
-    const keyPath = path.join(__dirname, "../cloudfront_private_key_pkcs8.pem");
+    const keyPath = path.join(__dirname, "../../keys/cloudfront_private_key.pem");
     CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
   } catch (err) {
     console.error("Missing CloudFront Private Key!");
