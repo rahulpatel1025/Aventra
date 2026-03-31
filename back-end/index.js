@@ -1,7 +1,3 @@
-process.on('uncaughtException', (err) => {
-  console.error('🔥 CRITICAL ERROR:', err.message);
-  console.error('Stack:', err.stack);
-});
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");

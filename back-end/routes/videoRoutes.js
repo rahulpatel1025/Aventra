@@ -1,31 +1,50 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const path = require("path");
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
-const forge = require("node-forge"); // Replaced AWS SDK with pure JS cryptography
+const forge = require("node-forge");
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
-// ── CloudFront config from env ──
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
-const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
+// ── CloudFront config ──
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
+const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID;
 
-let CLOUDFRONT_PRIVATE_KEY = "";
+// ── Parse private key — handles PKCS#8 and PKCS#1, with or without quotes ──
+function parsePrivateKey() {
+  const raw = process.env.CLOUDFRONT_PRIVATE_KEY;
+  if (!raw) {
+    console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing");
+    return null;
+  }
 
-if (process.env.CLOUDFRONT_PRIVATE_KEY) {
-  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
-    .replace(/^["']|["']$/g, "") // 1. Strip hidden quotes Hostinger might wrap around the string
-    .replace(/\\+n/g, "\n")      // 2. Convert the literal "\n" text into real, actual line breaks
-    .replace(/\r/g, "")          // 3. Destroy Windows carriage returns that crash Linux OpenSSL
-    .trim();                     // 4. Clean up any accidental spaces at the very beginning or end
-    
-} else {
-  console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
+  const cleaned = raw
+    .replace(/^["']|["']$/g, "")   // strip surrounding quotes
+    .replace(/\\n/g, "\n")          // literal \n → real newline
+    .replace(/\r/g, "")             // strip carriage returns
+    .trim();
+
+  try {
+    // Try PKCS#8 first (BEGIN PRIVATE KEY)
+    if (cleaned.includes("BEGIN PRIVATE KEY")) {
+      const keyInfo = forge.pki.privateKeyInfoFromPem(cleaned);
+      return forge.pki.privateKeyFromAsn1(forge.asn1.fromDer(keyInfo.privateKey));
+    }
+    // Try PKCS#1 (BEGIN RSA PRIVATE KEY)
+    if (cleaned.includes("BEGIN RSA PRIVATE KEY")) {
+      return forge.pki.privateKeyFromPem(cleaned);
+    }
+    console.error("❌ Unknown private key format");
+    return null;
+  } catch (err) {
+    console.error("❌ Failed to parse private key:", err.message);
+    return null;
+  }
 }
 
-// ── FinTech course video catalogue ──
+const PRIVATE_KEY = parsePrivateKey();
+
+// ── FinTech video catalogue ──
 const FINTECH_VIDEOS = [
   { videoId: "FT01", index: 0, title: "Introduction to FinTech & Digital Platforms" },
   { videoId: "FT02", index: 1, title: "Digital Payment Systems" },
@@ -39,7 +58,7 @@ const FINTECH_VIDEOS = [
   { videoId: "FT10", index: 9, title: "Capstone: Building a FinTech Product" },
 ];
 
-const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID; 
+const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID;
 
 function getVideoCatalogue(courseId) {
   if (courseId === FINTECH_COURSE_ID) return FINTECH_VIDEOS;
@@ -61,12 +80,20 @@ async function verifyEnrollment(userId, courseId) {
   return user.purchasedCourses.some((id) => id.toString() === courseId);
 }
 
-// ── Generate a Custom Policy and Sign via Pure JS (node-forge) ──
+// ── AWS URL-safe Base64 ──
+function awsBase64(str) {
+  return str.replace(/\+/g, "-").replace(/=/g, "_").replace(/\//g, "~");
+}
+
+// ── Generate CloudFront signed URL using node-forge ──
+// Works with both PKCS#8 and PKCS#1 keys, bypasses Node.js 18 OpenSSL restrictions
 function generateSignedUrl(videoId, s3Key) {
+  if (!PRIVATE_KEY) throw new Error("Private key not loaded");
+
   const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
 
-  // This policy allows access to anything inside the specific video folder (/*)
-  const customPolicy = JSON.stringify({
+  // Custom policy — grants access to entire video folder for 2 hours
+  const policy = JSON.stringify({
     Statement: [
       {
         Resource: `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/*`,
@@ -77,29 +104,15 @@ function generateSignedUrl(videoId, s3Key) {
     ],
   });
 
-  // AWS Specific Base64 Encoding Rules (+ to -, = to _, / to ~)
-  const makeUrlSafe = (str) => str.replace(/\+/g, '-').replace(/=/g, '_').replace(/\//g, '~');
+  // Sign with SHA-1 (CloudFront requirement)
+  const md = forge.md.sha1.create();
+  md.update(policy, "utf8");
+  const signature = PRIVATE_KEY.sign(md);
 
-  try {
-    // 1. Encode the Policy
-    const encodedPolicy = makeUrlSafe(Buffer.from(customPolicy).toString('base64'));
+  const encodedPolicy = awsBase64(Buffer.from(policy).toString("base64"));
+  const encodedSignature = awsBase64(forge.util.encode64(signature));
 
-    // 2. Sign the Policy using Pure JS (Bypassing Hostinger's OpenSSL ban)
-    const privateKey = forge.pki.privateKeyFromPem(CLOUDFRONT_PRIVATE_KEY);
-    const md = forge.md.sha1.create();
-    md.update(customPolicy, 'utf8');
-    const signatureBytes = privateKey.sign(md);
-    
-    // 3. Encode the Signature
-    const encodedSignature = makeUrlSafe(forge.util.encode64(signatureBytes));
-
-    // 4. Construct the final URL
-    return `https://${CLOUDFRONT_DOMAIN}/${s3Key}?Policy=${encodedPolicy}&Signature=${encodedSignature}&Key-Pair-Id=${CLOUDFRONT_KEY_ID}`;
-    
-  } catch (err) {
-    console.error("Node-Forge Signing Error:", err);
-    throw new Error("Failed to sign URL with Pure JS");
-  }
+  return `https://${CLOUDFRONT_DOMAIN}/${s3Key}?Policy=${encodedPolicy}&Signature=${encodedSignature}&Key-Pair-Id=${CLOUDFRONT_KEY_ID}`;
 }
 
 // ── GET /api/videos/catalogue/:courseId ──
@@ -116,10 +129,10 @@ router.get(
       const { courseId } = req.params;
 
       const enrolled = await verifyEnrollment(userId, courseId);
-      if (!enrolled) return res.status(403).json({ error: "Not enrolled in this course" });
+      if (!enrolled) return res.status(403).json({ error: "Not enrolled" });
 
       const catalogue = getVideoCatalogue(courseId);
-      if (!catalogue) return res.status(404).json({ error: "Course video catalogue not found" });
+      if (!catalogue) return res.status(404).json({ error: "Course not found" });
 
       const progressRecords = await VideoProgress.find({ userId, courseId });
       const progressMap = {};
@@ -129,15 +142,13 @@ router.get(
         const progress = progressMap[video.videoId];
         const completed = progress?.completed || false;
         const watchPercent = progress?.watchPercent || 0;
-
         const previousCompleted = i === 0 ? true : progressMap[catalogue[i - 1].videoId]?.completed || false;
-        const isLocked = !previousCompleted;
 
         return {
           videoId: video.videoId,
           index: video.index,
           title: video.title,
-          isLocked,
+          isLocked: !previousCompleted,
           completed,
           watchPercent,
         };
@@ -170,7 +181,7 @@ router.get(
       const { courseId, videoId, quality = "720p" } = req.query;
 
       const enrolled = await verifyEnrollment(userId, courseId);
-      if (!enrolled) return res.status(403).json({ error: "Not enrolled in this course" });
+      if (!enrolled) return res.status(403).json({ error: "Not enrolled" });
 
       const catalogue = getVideoCatalogue(courseId);
       if (!catalogue) return res.status(404).json({ error: "Course not found" });
@@ -178,6 +189,7 @@ router.get(
       const videoMeta = catalogue.find((v) => v.videoId === videoId);
       if (!videoMeta) return res.status(404).json({ error: "Video not found" });
 
+      // Sequential gating — must complete previous video first
       if (videoMeta.index > 0) {
         const prevVideo = catalogue[videoMeta.index - 1];
         const prevProgress = await VideoProgress.findOne({
@@ -196,11 +208,10 @@ router.get(
       }
 
       const s3Key = `streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
-      
       const signedUrl = generateSignedUrl(videoId, s3Key);
 
       const log = global.logger || console;
-      log.info(`Signed URL issued: userId=${userId} videoId=${videoId} quality=${quality}`);
+      log.info(`Signed URL: userId=${userId} videoId=${videoId} quality=${quality}`);
 
       res.json({
         signedUrl,
@@ -212,15 +223,8 @@ router.get(
       });
     } catch (err) {
       const log = global.logger || console;
-      log.error("Signed URL error:", err);
-      res.status(500).json({ 
-        error: "Server error",
-        debugMessage: "Failed to sign CloudFront URL", 
-        exactError: err.message,
-        keyLength: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.length : 0,
-        keyPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.substring(0, 40) : "MISSING",
-        keyEndPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.slice(-40) : "MISSING"
-      });
+      log.error("Signed URL error:", err.message);
+      res.status(500).json({ error: "Failed to generate video URL" });
     }
   }
 );
