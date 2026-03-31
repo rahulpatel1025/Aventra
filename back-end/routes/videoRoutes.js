@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
-const forge = require("node-forge");
+const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
+
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
@@ -10,39 +11,17 @@ const VideoProgress = require("../models/VideoProgress");
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
 const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID;
 
-// ── Parse private key — handles PKCS#8 and PKCS#1, with or without quotes ──
-function parsePrivateKey() {
-  const raw = process.env.CLOUDFRONT_PRIVATE_KEY;
-  if (!raw) {
-    console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing");
-    return null;
-  }
+// ── Private key from ENV ──
+const CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
+  ? process.env.CLOUDFRONT_PRIVATE_KEY
+      .replace(/\\n/g, "\n")
+      .replace(/\r/g, "")
+      .trim()
+  : null;
 
-  const cleaned = raw
-    .replace(/^["']|["']$/g, "")   // strip surrounding quotes
-    .replace(/\\n/g, "\n")          // literal \n → real newline
-    .replace(/\r/g, "")             // strip carriage returns
-    .trim();
-
-  try {
-    // Try PKCS#8 first (BEGIN PRIVATE KEY)
-    if (cleaned.includes("BEGIN PRIVATE KEY")) {
-      const keyInfo = forge.pki.privateKeyInfoFromPem(cleaned);
-      return forge.pki.privateKeyFromAsn1(forge.asn1.fromDer(keyInfo.privateKey));
-    }
-    // Try PKCS#1 (BEGIN RSA PRIVATE KEY)
-    if (cleaned.includes("BEGIN RSA PRIVATE KEY")) {
-      return forge.pki.privateKeyFromPem(cleaned);
-    }
-    console.error("❌ Unknown private key format");
-    return null;
-  } catch (err) {
-    console.error("❌ Failed to parse private key:", err.message);
-    return null;
-  }
+if (!CLOUDFRONT_PRIVATE_KEY) {
+  console.error("❌ CLOUDFRONT_PRIVATE_KEY missing in ENV");
 }
-
-const PRIVATE_KEY = parsePrivateKey();
 
 // ── FinTech video catalogue ──
 const FINTECH_VIDEOS = [
@@ -60,6 +39,7 @@ const FINTECH_VIDEOS = [
 
 const FINTECH_COURSE_ID = process.env.FINTECH_COURSE_ID;
 
+// ── Helpers ──
 function getVideoCatalogue(courseId) {
   if (courseId === FINTECH_COURSE_ID) return FINTECH_VIDEOS;
   return null;
@@ -80,39 +60,16 @@ async function verifyEnrollment(userId, courseId) {
   return user.purchasedCourses.some((id) => id.toString() === courseId);
 }
 
-// ── AWS URL-safe Base64 ──
-function awsBase64(str) {
-  return str.replace(/\+/g, "-").replace(/=/g, "_").replace(/\//g, "~");
-}
-
-// ── Generate CloudFront signed URL using node-forge ──
-// Works with both PKCS#8 and PKCS#1 keys, bypasses Node.js 18 OpenSSL restrictions
+// ── Generate CloudFront signed URL ──
 function generateSignedUrl(videoId, s3Key) {
-  if (!PRIVATE_KEY) throw new Error("Private key not loaded");
+  const url = `https://${CLOUDFRONT_DOMAIN}/${s3Key}`;
 
-  const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
-
-  // Custom policy — grants access to entire video folder for 2 hours
-  const policy = JSON.stringify({
-    Statement: [
-      {
-        Resource: `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/*`,
-        Condition: {
-          DateLessThan: { "AWS:EpochTime": expiresAt },
-        },
-      },
-    ],
+  return getSignedUrl({
+    url,
+    keyPairId: CLOUDFRONT_KEY_ID,
+    privateKey: CLOUDFRONT_PRIVATE_KEY,
+    dateLessThan: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
   });
-
-  // Sign with SHA-1 (CloudFront requirement)
-  const md = forge.md.sha1.create();
-  md.update(policy, "utf8");
-  const signature = PRIVATE_KEY.sign(md);
-
-  const encodedPolicy = awsBase64(Buffer.from(policy).toString("base64"));
-  const encodedSignature = awsBase64(forge.util.encode64(signature));
-
-  return `https://${CLOUDFRONT_DOMAIN}/${s3Key}?Policy=${encodedPolicy}&Signature=${encodedSignature}&Key-Pair-Id=${CLOUDFRONT_KEY_ID}`;
 }
 
 // ── GET /api/videos/catalogue/:courseId ──
@@ -136,13 +93,19 @@ router.get(
 
       const progressRecords = await VideoProgress.find({ userId, courseId });
       const progressMap = {};
-      progressRecords.forEach((p) => { progressMap[p.videoId] = p; });
+      progressRecords.forEach((p) => {
+        progressMap[p.videoId] = p;
+      });
 
       const videos = catalogue.map((video, i) => {
         const progress = progressMap[video.videoId];
         const completed = progress?.completed || false;
         const watchPercent = progress?.watchPercent || 0;
-        const previousCompleted = i === 0 ? true : progressMap[catalogue[i - 1].videoId]?.completed || false;
+
+        const previousCompleted =
+          i === 0
+            ? true
+            : progressMap[catalogue[i - 1].videoId]?.completed || false;
 
         return {
           videoId: video.videoId,
@@ -156,8 +119,7 @@ router.get(
 
       res.json({ videos });
     } catch (err) {
-      const log = global.logger || console;
-      log.error("Catalogue fetch error:", err);
+      console.error("Catalogue fetch error:", err);
       res.status(500).json({ error: "Server error" });
     }
   }
@@ -170,7 +132,10 @@ router.get(
   [
     query("courseId").isMongoId().withMessage("Invalid courseId"),
     query("videoId").trim().notEmpty().withMessage("videoId is required"),
-    query("quality").optional().isIn(["1080p", "720p", "360p"]).withMessage("Invalid quality"),
+    query("quality")
+      .optional()
+      .isIn(["1080p", "720p", "360p"])
+      .withMessage("Invalid quality"),
   ],
   async (req, res) => {
     const validationError = handleValidation(req, res);
@@ -189,7 +154,7 @@ router.get(
       const videoMeta = catalogue.find((v) => v.videoId === videoId);
       if (!videoMeta) return res.status(404).json({ error: "Video not found" });
 
-      // Sequential gating — must complete previous video first
+      // Sequential gating
       if (videoMeta.index > 0) {
         const prevVideo = catalogue[videoMeta.index - 1];
         const prevProgress = await VideoProgress.findOne({
@@ -198,6 +163,7 @@ router.get(
           videoId: prevVideo.videoId,
           completed: true,
         });
+
         if (!prevProgress) {
           return res.status(403).json({
             error: "Complete the previous video first",
@@ -208,10 +174,10 @@ router.get(
       }
 
       const s3Key = `streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
+
       const signedUrl = generateSignedUrl(videoId, s3Key);
 
-      const log = global.logger || console;
-      log.info(`Signed URL: userId=${userId} videoId=${videoId} quality=${quality}`);
+      console.log(`Signed URL generated: ${videoId}`);
 
       res.json({
         signedUrl,
@@ -222,8 +188,7 @@ router.get(
         expiresInSeconds: 7200,
       });
     } catch (err) {
-      const log = global.logger || console;
-      log.error("Signed URL error:", err.message);
+      console.error("Signed URL error:", err);
       res.status(500).json({ error: "Failed to generate video URL" });
     }
   }
