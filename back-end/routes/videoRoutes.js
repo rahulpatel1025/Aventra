@@ -12,10 +12,21 @@ const VideoProgress = require("../models/VideoProgress");
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
 
-// ── THE BULLETPROOF FIX: Read the raw file directly ──
-// This bypasses all OpenSSL string parsing issues from .env files
-const keyPath = path.join(__dirname, "../cloudfront_private_key_pkcs8.pem");
-const CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
+let CLOUDFRONT_PRIVATE_KEY = "";
+
+// ── THE ULTIMATE PRODUCTION FIX ──
+if (process.env.CLOUDFRONT_PRIVATE_KEY) {
+  // If the key is in Env (Production), convert the \n text back to real line breaks
+  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY.replace(/\\n/g, "\n");
+} else {
+  // If no Env key, look for the local file (Development)
+  try {
+    const keyPath = path.join(__dirname, "../cloudfront_private_key_pkcs8.pem");
+    CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
+  } catch (err) {
+    console.error("Missing CloudFront Private Key!");
+  }
+}
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
