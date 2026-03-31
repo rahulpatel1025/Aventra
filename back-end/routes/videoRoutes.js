@@ -15,21 +15,12 @@ const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID;
 let CLOUDFRONT_PRIVATE_KEY = "";
 
 if (process.env.CLOUDFRONT_PRIVATE_KEY) {
-  // 1. Strip away everything except the pure base64 letters and numbers
-  let pureBase64 = process.env.CLOUDFRONT_PRIVATE_KEY
-    .replace(/-----BEGIN.*?-----/g, "") // Remove the header
-    .replace(/-----END.*?-----/g, "")   // Remove the footer
-    .replace(/[^a-zA-Z0-9+/=]/g, "");   // REMOVE ALL slashes, spaces, quotes, and \n
-
-  // 2. Rebuild the key perfectly, forcing a line break every 64 characters
-  let rebuiltKey = "-----BEGIN RSA PRIVATE KEY-----\n";
-  for (let i = 0; i < pureBase64.length; i += 64) {
-    rebuiltKey += pureBase64.substring(i, i + 64) + "\n";
-  }
-  rebuiltKey += "-----END RSA PRIVATE KEY-----";
-
-  CLOUDFRONT_PRIVATE_KEY = rebuiltKey;
-  
+  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
+    .replace(/^["']|["']$/g, "") // 1. Strip hidden quotes Hostinger might wrap around the string
+    .replace(/\\+n/g, "\n")      // 2. Convert the literal "\n" text into real, actual line breaks
+    .replace(/\r/g, "")          // 3. Destroy Windows carriage returns that crash Linux OpenSSL
+    .trim();                     // 4. Clean up any accidental spaces at the very beginning or end
+    
 } else {
   console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
 }
