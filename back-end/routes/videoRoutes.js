@@ -14,18 +14,22 @@ const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID;
 
 let CLOUDFRONT_PRIVATE_KEY = "";
 
-// ── THE ULTIMATE PRODUCTION FIX ──
-if (process.env.CLOUDFRONT_PRIVATE_KEY) {
-  // If the key is in Env (Production), convert the \n text back to real line breaks
-  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY.replace(/\\n/g, "\n");
-} else {
-  // If no Env key, look for the local file (Development)
+if (process.env.CLOUDFRONT_PRIVATE_KEY_BASE64) {
   try {
-    const keyPath = path.join(__dirname, "../cloudfront_private_key.pem");
-    CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
+    CLOUDFRONT_PRIVATE_KEY = Buffer.from(
+      process.env.CLOUDFRONT_PRIVATE_KEY_BASE64,
+      "base64"
+    ).toString("utf8");
   } catch (err) {
-    console.error("Missing CloudFront Private Key!");
+    console.error("Base64 decode failed:", err);
   }
+} else if (process.env.CLOUDFRONT_PRIVATE_KEY) {
+  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
+    .replace(/\\n/g, "\n")
+    .trim();
+} else {
+  const keyPath = path.join(__dirname, "../cloudfront_private_key.pem");
+  CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
 }
 
 // ── FinTech course video catalogue ──
