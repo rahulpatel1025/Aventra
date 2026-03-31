@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
-const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
+const forge = require("node-forge"); // Replaced AWS SDK with pure JS cryptography
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
@@ -24,7 +24,6 @@ if (process.env.CLOUDFRONT_PRIVATE_KEY) {
 } else {
   console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
 }
-
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
@@ -62,7 +61,7 @@ async function verifyEnrollment(userId, courseId) {
   return user.purchasedCourses.some((id) => id.toString() === courseId);
 }
 
-// ── Generate a Custom Policy for the entire folder ──
+// ── Generate a Custom Policy and Sign via Pure JS (node-forge) ──
 function generateSignedUrl(videoId, s3Key) {
   const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
 
@@ -78,14 +77,29 @@ function generateSignedUrl(videoId, s3Key) {
     ],
   });
 
-  const url = `https://${CLOUDFRONT_DOMAIN}/${s3Key}`;
+  // AWS Specific Base64 Encoding Rules (+ to -, = to _, / to ~)
+  const makeUrlSafe = (str) => str.replace(/\+/g, '-').replace(/=/g, '_').replace(/\//g, '~');
 
-  return getSignedUrl({
-    url,
-    keyPairId: CLOUDFRONT_KEY_ID,
-    privateKey: CLOUDFRONT_PRIVATE_KEY,
-    policy: customPolicy,
-  });
+  try {
+    // 1. Encode the Policy
+    const encodedPolicy = makeUrlSafe(Buffer.from(customPolicy).toString('base64'));
+
+    // 2. Sign the Policy using Pure JS (Bypassing Hostinger's OpenSSL ban)
+    const privateKey = forge.pki.privateKeyFromPem(CLOUDFRONT_PRIVATE_KEY);
+    const md = forge.md.sha1.create();
+    md.update(customPolicy, 'utf8');
+    const signatureBytes = privateKey.sign(md);
+    
+    // 3. Encode the Signature
+    const encodedSignature = makeUrlSafe(forge.util.encode64(signatureBytes));
+
+    // 4. Construct the final URL
+    return `https://${CLOUDFRONT_DOMAIN}/${s3Key}?Policy=${encodedPolicy}&Signature=${encodedSignature}&Key-Pair-Id=${CLOUDFRONT_KEY_ID}`;
+    
+  } catch (err) {
+    console.error("Node-Forge Signing Error:", err);
+    throw new Error("Failed to sign URL with Pure JS");
+  }
 }
 
 // ── GET /api/videos/catalogue/:courseId ──
@@ -199,7 +213,7 @@ router.get(
     } catch (err) {
       const log = global.logger || console;
       log.error("Signed URL error:", err);
-     res.status(500).json({ 
+      res.status(500).json({ 
         error: "Server error",
         debugMessage: "Failed to sign CloudFront URL", 
         exactError: err.message,
