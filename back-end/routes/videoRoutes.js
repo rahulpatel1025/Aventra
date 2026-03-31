@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const fs = require("fs");
+const path = require("path");
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
 const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
@@ -10,15 +12,10 @@ const VideoProgress = require("../models/VideoProgress");
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
 
-// Grab the key, strip any accidental quotes/spaces Hostinger might have added
-const rawBase64 = (process.env.CLOUDFRONT_PRIVATE_KEY_BASE64 || "")
-  .replace(/['"]/g, "")
-  .trim();
-
-// Decode it and force all Windows line-breaks (\r\n) into Linux line-breaks (\n)
-const CLOUDFRONT_PRIVATE_KEY = Buffer.from(rawBase64, "base64")
-  .toString("utf8")
-  .replace(/\r\n/g, "\n");
+// ── THE BULLETPROOF FIX: Read the raw file directly ──
+// This bypasses all OpenSSL string parsing issues from .env files
+const keyPath = path.join(__dirname, "../cloudfront_private_key_pkcs8.pem");
+const CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
@@ -56,7 +53,7 @@ async function verifyEnrollment(userId, courseId) {
   return user.purchasedCourses.some((id) => id.toString() === courseId);
 }
 
-// ── THE FIX: Generate a Custom Policy for the entire folder ──
+// ── Generate a Custom Policy for the entire folder ──
 function generateSignedUrl(videoId, s3Key) {
   const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
 
@@ -177,7 +174,6 @@ router.get(
 
       const s3Key = `streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
       
-      // ── THE FIX: Pass videoId into the generator so it can wildcard the folder ──
       const signedUrl = generateSignedUrl(videoId, s3Key);
 
       const log = global.logger || console;
