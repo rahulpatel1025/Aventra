@@ -10,10 +10,15 @@ const VideoProgress = require("../models/VideoProgress");
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
 
-const CLOUDFRONT_PRIVATE_KEY = Buffer.from(
-  process.env.CLOUDFRONT_PRIVATE_KEY_BASE64, 
-  "base64"
-).toString("utf8");
+// Grab the key, strip any accidental quotes/spaces Hostinger might have added
+const rawBase64 = (process.env.CLOUDFRONT_PRIVATE_KEY_BASE64 || "")
+  .replace(/['"]/g, "")
+  .trim();
+
+// Decode it and force all Windows line-breaks (\r\n) into Linux line-breaks (\n)
+const CLOUDFRONT_PRIVATE_KEY = Buffer.from(rawBase64, "base64")
+  .toString("utf8")
+  .replace(/\r\n/g, "\n");
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
