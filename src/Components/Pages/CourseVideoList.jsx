@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
 import SecureVideoPlayer from "./SecureVideoPlayer";
-import "../../assets/css/courseVideoList.css";
+import "../../assets/css/CourseVideoList.css";
 
 export default function CourseVideoList({ courseId, courseName }) {
   const { getToken } = useAuth();
