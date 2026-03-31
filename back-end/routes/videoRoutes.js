@@ -12,18 +12,22 @@ const VideoProgress = require("../models/VideoProgress");
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
 
-// Absolute path to your secure key
-const keyPath = "/home/u825460211/domains/aventratechsolution.com/secure/cloudfront_private_key.pem";
-
-// Read private key
 let CLOUDFRONT_PRIVATE_KEY = "";
 
-try {
-  CLOUDFRONT_PRIVATE_KEY = fs.readFileSync(keyPath, "utf8");
-} catch (err) {
-  console.error("❌ Failed to read CloudFront private key:", err);
+if (process.env.CLOUDFRONT_PRIVATE_KEY) {
+  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
+    .replace(/\\n/g, "\n")   // convert escaped newlines
+    .replace(/\r/g, "")      // remove carriage returns
+    .trim();
+} else {
+  console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
 }
 
+console.log("--- DEBUG START ---");
+console.log("Key Start:", process.env.CLOUDFRONT_PRIVATE_KEY.substring(0, 40));
+console.log("Key End:", process.env.CLOUDFRONT_PRIVATE_KEY.slice(-40));
+console.log("Key Length:", process.env.CLOUDFRONT_PRIVATE_KEY.length);
+console.log("--- DEBUG END ---");
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
