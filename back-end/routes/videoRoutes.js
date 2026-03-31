@@ -23,11 +23,6 @@ if (process.env.CLOUDFRONT_PRIVATE_KEY) {
   console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
 }
 
-console.log("--- DEBUG START ---");
-console.log("Key Start:", process.env.CLOUDFRONT_PRIVATE_KEY.substring(0, 40));
-console.log("Key End:", process.env.CLOUDFRONT_PRIVATE_KEY.slice(-40));
-console.log("Key Length:", process.env.CLOUDFRONT_PRIVATE_KEY.length);
-console.log("--- DEBUG END ---");
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
@@ -202,7 +197,14 @@ router.get(
     } catch (err) {
       const log = global.logger || console;
       log.error("Signed URL error:", err);
-      res.status(500).json({ error: "Server error" });
+     res.status(500).json({ 
+        error: "Server error",
+        debugMessage: "Failed to sign CloudFront URL", 
+        exactError: err.message,
+        keyLength: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.length : 0,
+        keyPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.substring(0, 40) : "MISSING",
+        keyEndPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.slice(-40) : "MISSING"
+      });
     }
   }
 );
