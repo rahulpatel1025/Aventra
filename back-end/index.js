@@ -17,6 +17,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const referralRoutes = require("./routes/referralRoutes");
 const videoRoutes = require("./routes/videoRoutes");
+const progressRoutes = require("./routes/progressRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -244,6 +245,7 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/referral", referralRoutes);
 app.use("/api/videos", videoRoutes); // <--- THIS IS THE MAGIC LINE ADDED
+app.use("/api/progress", progressRoutes); // <--- PROGRESS TRACKING ROUTES
 
 // ================= FEEDBACK =================
 const commentSchema = new mongoose.Schema(
