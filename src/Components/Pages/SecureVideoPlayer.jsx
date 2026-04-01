@@ -4,8 +4,7 @@ import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
 import "../../assets/css/SecureVideoPlayer.css";
 
-const HEARTBEAT_INTERVAL_MS = 10000; 
-const COMPLETION_THRESHOLD = 0.92;   
+const COMPLETION_THRESHOLD = 95; // Marks complete at 95%
 
 export default function SecureVideoPlayer({
   courseId,
@@ -16,8 +15,10 @@ export default function SecureVideoPlayer({
 }) {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
-  const heartbeatRef = useRef(null);
-  const lastHeartbeatPercent = useRef(0);
+  
+  // Anti-Cheat Refs
+  const maxWatchedTime = useRef(0);
+  const lastHeartbeatTime = useRef(0);
 
   const { getToken } = useAuth();
   const [videoUrl, setVideoUrl] = useState(null);
@@ -27,18 +28,17 @@ export default function SecureVideoPlayer({
   const [completed, setCompleted] = useState(false);
   const [watchPercent, setWatchPercent] = useState(0);
 
-  // ── Fetch Signed Cookies & Clean URL from backend ──
+  // ── 1. Fetch Signed Cookies & Clean URL from backend ──
   const fetchVideoAccess = useCallback(async (selectedQuality = quality) => {
     try {
       setLoading(true);
       setError(null);
       const token = await getToken();
       
-      // We hit the new endpoint. The backend sets the cookies automatically via headers!
       const res = await axios.get("/api/videos/set-cookies", {
         params: { courseId, videoId, quality: selectedQuality },
         headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true // Crucial: Allows the backend to set cookies on the browser
+        withCredentials: true 
       });
       
       setVideoUrl(res.data.videoUrl);
@@ -51,10 +51,15 @@ export default function SecureVideoPlayer({
   }, [courseId, videoId, quality, getToken]);
 
   useEffect(() => {
+    // Reset state when video changes
+    maxWatchedTime.current = 0;
+    lastHeartbeatTime.current = 0;
+    setCompleted(false);
+    setWatchPercent(0);
     fetchVideoAccess(quality);
-  }, [videoId, quality]);
+  }, [videoId, quality, fetchVideoAccess]);
 
-  // ── Initialise HLS.js using Cookies ──
+  // ── 2. Initialise HLS.js using Cookies ──
   useEffect(() => {
     if (!videoUrl || !videoRef.current) return;
 
@@ -68,9 +73,7 @@ export default function SecureVideoPlayer({
         enableWorker: true,
         lowLatencyMode: false,
         backBufferLength: 30,
-        
-        // THE MAGIC TRICK: This forces HLS to send your CloudFront cookies with every request
-        xhrSetup: (xhr, url) => {
+        xhrSetup: (xhr) => {
           xhr.withCredentials = true; 
         },
       });
@@ -81,8 +84,7 @@ export default function SecureVideoPlayer({
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            // Cookies likely expired — refresh them
-            fetchVideoAccess(quality);
+            fetchVideoAccess(quality); // Refresh cookies if expired
           } else {
             setError("Video playback error. Please refresh.");
           }
@@ -91,7 +93,6 @@ export default function SecureVideoPlayer({
 
       hlsRef.current = hls;
     } else if (videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
-      // Safari native HLS
       videoRef.current.src = videoUrl;
     } else {
       setError("Your browser does not support video streaming.");
@@ -103,98 +104,78 @@ export default function SecureVideoPlayer({
         hlsRef.current = null;
       }
     };
-  }, [videoUrl]);
+  }, [videoUrl, fetchVideoAccess, quality]);
 
-  // ── Heartbeat + completion tracking ──
+  // ── 3. Database Sync ──
   const sendHeartbeat = useCallback(async (percent, isComplete = false) => {
     try {
       const token = await getToken();
-      const video = videoRef.current;
-      const watchedSeconds = video ? Math.floor(video.currentTime) : 0;
-
       const endpoint = isComplete ? "/api/progress/complete" : "/api/progress/heartbeat";
       await axios.post(
         endpoint,
-        { courseId, videoId, videoIndex, watchPercent: percent, watchedSeconds },
+        { 
+          courseId, 
+          videoId, 
+          videoIndex, 
+          watchPercent: percent, 
+          watchedSeconds: Math.floor(maxWatchedTime.current) 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-    } catch {
-      // Silently fail
+    } catch (err) {
+      console.error("Progress sync failed", err);
     }
   }, [courseId, videoId, videoIndex, getToken]);
 
-  useEffect(() => {
+  // ── 4. The Anti-Cheat Progress Tracker ──
+  const handleTimeUpdate = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !video.duration) return;
 
-    const handleTimeUpdate = () => {
-      if (!video.duration) return;
-      const percent = (video.currentTime / video.duration) * 100;
-      setWatchPercent(Math.round(percent));
+    const current = video.currentTime;
 
-      if (!completed && percent >= COMPLETION_THRESHOLD * 100) {
-        setCompleted(true);
-        sendHeartbeat(100, true);
-        if (onComplete) onComplete(videoId, videoIndex);
-        clearInterval(heartbeatRef.current);
-      }
-    };
+    // 🛑 THE ANTI-CHEAT GATE: Rubber-band them back if they seek forward
+    // (We allow a tiny 2-second buffer for browser buffering glitches)
+    if (current > maxWatchedTime.current + 2) {
+      video.currentTime = maxWatchedTime.current;
+      return;
+    }
 
-    const handlePlay = () => {
-      clearInterval(heartbeatRef.current);
-      heartbeatRef.current = setInterval(async () => {
-        if (!video.duration) return;
-        const percent = (video.currentTime / video.duration) * 100;
-        if (Math.abs(percent - lastHeartbeatPercent.current) >= 2) {
-          lastHeartbeatPercent.current = percent;
-          await sendHeartbeat(Math.round(percent));
-        }
-      }, HEARTBEAT_INTERVAL_MS);
-    };
+    // Update their maximum watched time
+    maxWatchedTime.current = Math.max(maxWatchedTime.current, current);
+    const percent = Math.round((maxWatchedTime.current / video.duration) * 100);
+    setWatchPercent(percent);
 
-    const handlePause = () => clearInterval(heartbeatRef.current);
-    const handleEnded = () => {
-      clearInterval(heartbeatRef.current);
-      if (!completed) {
-        setCompleted(true);
-        sendHeartbeat(100, true);
-        if (onComplete) onComplete(videoId, videoIndex);
-      }
-    };
+    // Heartbeat to DB every 10 seconds of actual playback
+    if (current - lastHeartbeatTime.current > 10) {
+      lastHeartbeatTime.current = current;
+      sendHeartbeat(percent, false);
+    }
 
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("play", handlePlay);
-    video.addEventListener("pause", handlePause);
-    video.addEventListener("ended", handleEnded);
+    // Auto-complete when they reach the threshold
+    if (!completed && percent >= COMPLETION_THRESHOLD) {
+      setCompleted(true);
+      sendHeartbeat(100, true);
+      if (onComplete) onComplete(videoId, videoIndex);
+    }
+  };
 
-    return () => {
-      clearInterval(heartbeatRef.current);
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("play", handlePlay);
-      video.removeEventListener("pause", handlePause);
-      video.removeEventListener("ended", handleEnded);
-    };
-  }, [completed, sendHeartbeat, videoId, videoIndex, onComplete]);
+  const handleEnded = () => {
+    if (!completed && watchPercent >= COMPLETION_THRESHOLD) {
+      setCompleted(true);
+      sendHeartbeat(100, true);
+      if (onComplete) onComplete(videoId, videoIndex);
+    }
+  };
 
-  // ── Block right-click and keyboard shortcuts ──
+  // ── 5. Block Right-Click ──
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const blockContextMenu = (e) => e.preventDefault();
-    const blockKeys = (e) => {
-      if ((e.ctrlKey && (e.key === "s" || e.key === "u")) || e.key === "F12") {
-        e.preventDefault();
-      }
-    };
-
     video.addEventListener("contextmenu", blockContextMenu);
-    document.addEventListener("keydown", blockKeys);
-
-    return () => {
-      video.removeEventListener("contextmenu", blockContextMenu);
-      document.removeEventListener("keydown", blockKeys);
-    };
+    return () => video.removeEventListener("contextmenu", blockContextMenu);
   }, []);
 
   const handleQualityChange = (q) => {
@@ -235,6 +216,8 @@ export default function SecureVideoPlayer({
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
         playsInline
+        onTimeUpdate={handleTimeUpdate} // 👈 Tracking attached here
+        onEnded={handleEnded}           // 👈 End handler
       />
 
       <div className="svp-progress-wrap">
