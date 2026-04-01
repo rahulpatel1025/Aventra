@@ -50,12 +50,16 @@ export default function SecureVideoPlayer({
     }
   }, [courseId, videoId, quality, getToken]);
 
+  // Reset progress ONLY when the actual video lesson changes
   useEffect(() => {
-    // Reset state when video changes
     maxWatchedTime.current = 0;
     lastHeartbeatTime.current = 0;
     setCompleted(false);
     setWatchPercent(0);
+  }, [videoId]);
+
+  // Fetch new cookies/URL when the video OR the quality changes
+  useEffect(() => {
     fetchVideoAccess(quality);
   }, [videoId, quality, fetchVideoAccess]);
 
@@ -176,6 +180,26 @@ export default function SecureVideoPlayer({
     const blockContextMenu = (e) => e.preventDefault();
     video.addEventListener("contextmenu", blockContextMenu);
     return () => video.removeEventListener("contextmenu", blockContextMenu);
+  }, []);
+
+  // ── 6. Auto-Pause on Tab Switch ──
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // If the tab becomes hidden and the video exists, pause it
+      if (document.hidden && videoRef.current) {
+        videoRef.current.pause();
+        // Optional: You can also add an alert or toast here
+        // console.log("Video paused because tab lost focus");
+      }
+    };
+
+    // Listen for the tab visibility changing
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      // Cleanup the listener when the component unmounts
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const handleQualityChange = (q) => {
