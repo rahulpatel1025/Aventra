@@ -4,8 +4,8 @@ import axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
 import "../../assets/css/SecureVideoPlayer.css";
 
-const HEARTBEAT_INTERVAL_MS = 10000; // every 10 seconds
-const COMPLETION_THRESHOLD = 0.92;   // 92% watched = complete
+const HEARTBEAT_INTERVAL_MS = 10000; 
+const COMPLETION_THRESHOLD = 0.92;   
 
 export default function SecureVideoPlayer({
   courseId,
@@ -20,26 +20,30 @@ export default function SecureVideoPlayer({
   const lastHeartbeatPercent = useRef(0);
 
   const { getToken } = useAuth();
-  const [signedUrl, setSignedUrl] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(null);
   const [quality, setQuality] = useState("720p");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [completed, setCompleted] = useState(false);
   const [watchPercent, setWatchPercent] = useState(0);
 
-  // ── Fetch signed URL from backend ──
-  const fetchSignedUrl = useCallback(async (selectedQuality = quality) => {
+  // ── Fetch Signed Cookies & Clean URL from backend ──
+  const fetchVideoAccess = useCallback(async (selectedQuality = quality) => {
     try {
       setLoading(true);
       setError(null);
       const token = await getToken();
-      const res = await axios.get("/api/videos/signed-url", {
+      
+      // We hit the new endpoint. The backend sets the cookies automatically via headers!
+      const res = await axios.get("/api/videos/set-cookies", {
         params: { courseId, videoId, quality: selectedQuality },
         headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true // Crucial: Allows the backend to set cookies on the browser
       });
-      setSignedUrl(res.data.signedUrl);
+      
+      setVideoUrl(res.data.videoUrl);
     } catch (err) {
-      const msg = err.response?.data?.error || "Failed to load video";
+      const msg = err.response?.data?.error || "Failed to load video access";
       setError(msg);
     } finally {
       setLoading(false);
@@ -47,57 +51,38 @@ export default function SecureVideoPlayer({
   }, [courseId, videoId, quality, getToken]);
 
   useEffect(() => {
-    fetchSignedUrl(quality);
+    fetchVideoAccess(quality);
   }, [videoId, quality]);
 
-  // ── Initialise HLS.js when signed URL is ready ──
+  // ── Initialise HLS.js using Cookies ──
   useEffect(() => {
-    if (!signedUrl || !videoRef.current) return;
+    if (!videoUrl || !videoRef.current) return;
 
-    // Destroy previous instance
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
 
     if (Hls.isSupported()) {
-      // 1. Extract the CloudFront VIP Pass (Signature, Policy, Key-Pair-Id) from the URL
-      const urlObj = new URL(signedUrl);
-      const cloudFrontSignatureParams = urlObj.search; // Contains "?Policy=...&Signature=..."
-
       const hls = new Hls({
-        // Disable saving to disk / cache abuse
         enableWorker: true,
         lowLatencyMode: false,
         backBufferLength: 30,
         
-        // 2. THE INTERCEPTOR: Attach the VIP pass to every video chunk requested
+        // THE MAGIC TRICK: This forces HLS to send your CloudFront cookies with every request
         xhrSetup: (xhr, url) => {
-          if (!url.includes("Signature=")) {
-            // Cleanly append params whether the URL already has a '?' or not
-            const appendParams = cloudFrontSignatureParams.startsWith('?') 
-              ? cloudFrontSignatureParams.substring(1) 
-              : cloudFrontSignatureParams;
-            
-            const separator = url.includes('?') ? '&' : '?';
-            url = url + separator + appendParams;
-          }
-          xhr.open("GET", url, true);
+          xhr.withCredentials = true; 
         },
       });
 
-      hls.loadSource(signedUrl);
+      hls.loadSource(videoUrl);
       hls.attachMedia(videoRef.current);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        // Don't autoplay — student clicks play
-      });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            // Signed URL likely expired — refresh
-            fetchSignedUrl(quality);
+            // Cookies likely expired — refresh them
+            fetchVideoAccess(quality);
           } else {
             setError("Video playback error. Please refresh.");
           }
@@ -107,7 +92,7 @@ export default function SecureVideoPlayer({
       hlsRef.current = hls;
     } else if (videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
       // Safari native HLS
-      videoRef.current.src = signedUrl;
+      videoRef.current.src = videoUrl;
     } else {
       setError("Your browser does not support video streaming.");
     }
@@ -118,7 +103,7 @@ export default function SecureVideoPlayer({
         hlsRef.current = null;
       }
     };
-  }, [signedUrl]);
+  }, [videoUrl]);
 
   // ── Heartbeat + completion tracking ──
   const sendHeartbeat = useCallback(async (percent, isComplete = false) => {
@@ -134,7 +119,7 @@ export default function SecureVideoPlayer({
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch {
-      // Silently fail — don't interrupt playback
+      // Silently fail
     }
   }, [courseId, videoId, videoIndex, getToken]);
 
@@ -147,7 +132,6 @@ export default function SecureVideoPlayer({
       const percent = (video.currentTime / video.duration) * 100;
       setWatchPercent(Math.round(percent));
 
-      // Mark complete at threshold
       if (!completed && percent >= COMPLETION_THRESHOLD * 100) {
         setCompleted(true);
         sendHeartbeat(100, true);
@@ -161,7 +145,6 @@ export default function SecureVideoPlayer({
       heartbeatRef.current = setInterval(async () => {
         if (!video.duration) return;
         const percent = (video.currentTime / video.duration) * 100;
-        // Only send if meaningful progress since last heartbeat
         if (Math.abs(percent - lastHeartbeatPercent.current) >= 2) {
           lastHeartbeatPercent.current = percent;
           await sendHeartbeat(Math.round(percent));
@@ -193,14 +176,13 @@ export default function SecureVideoPlayer({
     };
   }, [completed, sendHeartbeat, videoId, videoIndex, onComplete]);
 
-  // ── Block right-click and keyboard download shortcuts ──
+  // ── Block right-click and keyboard shortcuts ──
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const blockContextMenu = (e) => e.preventDefault();
     const blockKeys = (e) => {
-      // Block Ctrl+S, Ctrl+U, F12
       if ((e.ctrlKey && (e.key === "s" || e.key === "u")) || e.key === "F12") {
         e.preventDefault();
       }
@@ -218,8 +200,7 @@ export default function SecureVideoPlayer({
   const handleQualityChange = (q) => {
     const currentTime = videoRef.current?.currentTime || 0;
     setQuality(q);
-    fetchSignedUrl(q).then(() => {
-      // Restore position after quality switch
+    fetchVideoAccess(q).then(() => {
       setTimeout(() => {
         if (videoRef.current) videoRef.current.currentTime = currentTime;
       }, 800);
@@ -236,19 +217,17 @@ export default function SecureVideoPlayer({
   if (error) return (
     <div className="svp-error">
       <span>⚠️ {error}</span>
-      <button onClick={() => fetchSignedUrl(quality)}>Retry</button>
+      <button onClick={() => fetchVideoAccess(quality)}>Retry</button>
     </div>
   );
 
   return (
     <div className="svp-wrapper">
-      {/* Title */}
       <div className="svp-title">
         {title}
         {completed && <span className="svp-badge">✅ Completed</span>}
       </div>
 
-      {/* Video element — controlsList blocks native download button */}
       <video
         ref={videoRef}
         className="svp-video"
@@ -258,12 +237,10 @@ export default function SecureVideoPlayer({
         playsInline
       />
 
-      {/* Progress bar */}
       <div className="svp-progress-wrap">
         <div className="svp-progress-bar" style={{ width: `${watchPercent}%` }} />
       </div>
 
-      {/* Quality selector */}
       <div className="svp-controls">
         <span className="svp-quality-label">Quality:</span>
         {["360p", "720p", "1080p"].map((q) => (

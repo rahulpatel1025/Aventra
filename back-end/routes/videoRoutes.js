@@ -1,30 +1,23 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const path = require("path");
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
-const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
+const { getSignedCookies } = require("@aws-sdk/cloudfront-signer");
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
 // ── CloudFront config from env ──
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; // Now cdn.aventratechsolution.com
 const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
 
 let CLOUDFRONT_PRIVATE_KEY = "";
-
 if (process.env.CLOUDFRONT_PRIVATE_KEY) {
   CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
-    .replace(/^["']|["']$/g, "") // 1. Strip hidden quotes Hostinger might wrap around the string
-    .replace(/\\+n/g, "\n")      // 2. Convert the literal "\n" text into real, actual line breaks
-    .replace(/\r/g, "")          // 3. Destroy Windows carriage returns that crash Linux OpenSSL
-    .trim();                     // 4. Clean up any accidental spaces at the very beginning or end
-    
-} else {
-  console.error("❌ CLOUDFRONT_PRIVATE_KEY is missing in ENV");
+    .replace(/^["']|["']$/g, "") 
+    .replace(/\\+n/g, "\n")      
+    .replace(/\r/g, "")          
+    .trim();                     
 }
-
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
@@ -49,9 +42,7 @@ function getVideoCatalogue(courseId) {
 
 function handleValidation(req, res) {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ message: errors.array()[0].msg });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ message: errors.array()[0].msg });
   return null;
 }
 
@@ -62,153 +53,102 @@ async function verifyEnrollment(userId, courseId) {
   return user.purchasedCourses.some((id) => id.toString() === courseId);
 }
 
-// ── Generate a Custom Policy for the entire folder ──
-function generateSignedUrl(videoId, s3Key) {
-  const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
-
-  // This policy allows access to anything inside the specific video folder (/*)
-  const customPolicy = JSON.stringify({
-    Statement: [
-      {
-        Resource: `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/*`,
-        Condition: {
-          DateLessThan: { "AWS:EpochTime": expiresAt },
-        },
-      },
-    ],
-  });
-
-  const url = `https://${CLOUDFRONT_DOMAIN}/${s3Key}`;
-
-  return getSignedUrl({
-    url,
-    keyPairId: CLOUDFRONT_KEY_ID,
-    privateKey: CLOUDFRONT_PRIVATE_KEY,
-    policy: customPolicy,
-  });
-}
-
 // ── GET /api/videos/catalogue/:courseId ──
-router.get(
-  "/catalogue/:courseId",
-  requireAuth(),
-  [param("courseId").isMongoId().withMessage("Invalid courseId")],
-  async (req, res) => {
-    const validationError = handleValidation(req, res);
-    if (validationError) return;
+router.get("/catalogue/:courseId", requireAuth(), [param("courseId").isMongoId().withMessage("Invalid courseId")], async (req, res) => {
+  if (handleValidation(req, res)) return;
 
-    try {
-      const { userId } = req.auth();
-      const { courseId } = req.params;
+  try {
+    const { userId } = req.auth();
+    const { courseId } = req.params;
 
-      const enrolled = await verifyEnrollment(userId, courseId);
-      if (!enrolled) return res.status(403).json({ error: "Not enrolled in this course" });
-
-      const catalogue = getVideoCatalogue(courseId);
-      if (!catalogue) return res.status(404).json({ error: "Course video catalogue not found" });
-
-      const progressRecords = await VideoProgress.find({ userId, courseId });
-      const progressMap = {};
-      progressRecords.forEach((p) => { progressMap[p.videoId] = p; });
-
-      const videos = catalogue.map((video, i) => {
-        const progress = progressMap[video.videoId];
-        const completed = progress?.completed || false;
-        const watchPercent = progress?.watchPercent || 0;
-
-        const previousCompleted = i === 0 ? true : progressMap[catalogue[i - 1].videoId]?.completed || false;
-        const isLocked = !previousCompleted;
-
-        return {
-          videoId: video.videoId,
-          index: video.index,
-          title: video.title,
-          isLocked,
-          completed,
-          watchPercent,
-        };
-      });
-
-      res.json({ videos });
-    } catch (err) {
-      const log = global.logger || console;
-      log.error("Catalogue fetch error:", err);
-      res.status(500).json({ error: "Server error" });
+    if (!(await verifyEnrollment(userId, courseId))) {
+      return res.status(403).json({ error: "Not enrolled in this course" });
     }
+
+    const catalogue = getVideoCatalogue(courseId);
+    if (!catalogue) return res.status(404).json({ error: "Course video catalogue not found" });
+
+    const progressRecords = await VideoProgress.find({ userId, courseId });
+    const progressMap = {};
+    progressRecords.forEach((p) => { progressMap[p.videoId] = p; });
+
+    const videos = catalogue.map((video, i) => {
+      const progress = progressMap[video.videoId];
+      const previousCompleted = i === 0 ? true : progressMap[catalogue[i - 1].videoId]?.completed;
+      return { 
+        ...video, 
+        isLocked: !previousCompleted, 
+        completed: progress?.completed || false, 
+        watchPercent: progress?.watchPercent || 0 
+      };
+    });
+
+    res.json({ videos });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
-);
+});
 
-// ── GET /api/videos/signed-url ──
-router.get(
-  "/signed-url",
-  requireAuth(),
-  [
-    query("courseId").isMongoId().withMessage("Invalid courseId"),
-    query("videoId").trim().notEmpty().withMessage("videoId is required"),
-    query("quality").optional().isIn(["1080p", "720p", "360p"]).withMessage("Invalid quality"),
-  ],
-  async (req, res) => {
-    const validationError = handleValidation(req, res);
-    if (validationError) return;
+// ── GET /api/videos/set-cookies ──
+// This completely replaces the "signed-url" route!
+router.get("/set-cookies", requireAuth(), [
+  query("courseId").isMongoId().withMessage("Invalid courseId"),
+  query("videoId").trim().notEmpty().withMessage("videoId is required"),
+  query("quality").optional().isIn(["1080p", "720p", "360p"]).withMessage("Invalid quality"),
+], async (req, res) => {
+  if (handleValidation(req, res)) return;
 
-    try {
-      const { userId } = req.auth();
-      const { courseId, videoId, quality = "720p" } = req.query;
+  try {
+    const { userId } = req.auth();
+    const { courseId, videoId, quality = "720p" } = req.query;
 
-      const enrolled = await verifyEnrollment(userId, courseId);
-      if (!enrolled) return res.status(403).json({ error: "Not enrolled in this course" });
-
-      const catalogue = getVideoCatalogue(courseId);
-      if (!catalogue) return res.status(404).json({ error: "Course not found" });
-
-      const videoMeta = catalogue.find((v) => v.videoId === videoId);
-      if (!videoMeta) return res.status(404).json({ error: "Video not found" });
-
-      if (videoMeta.index > 0) {
-        const prevVideo = catalogue[videoMeta.index - 1];
-        const prevProgress = await VideoProgress.findOne({
-          userId,
-          courseId,
-          videoId: prevVideo.videoId,
-          completed: true,
-        });
-        if (!prevProgress) {
-          return res.status(403).json({
-            error: "Complete the previous video first",
-            blockedBy: prevVideo.videoId,
-            blockedByTitle: prevVideo.title,
-          });
-        }
-      }
-
-      const s3Key = `streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
-      
-      const signedUrl = generateSignedUrl(videoId, s3Key);
-
-      const log = global.logger || console;
-      log.info(`Signed URL issued: userId=${userId} videoId=${videoId} quality=${quality}`);
-
-      res.json({
-        signedUrl,
-        videoId,
-        quality,
-        title: videoMeta.title,
-        index: videoMeta.index,
-        expiresInSeconds: 7200,
-      });
-    } catch (err) {
-      const log = global.logger || console;
-      log.error("Signed URL error:", err);
-     res.status(500).json({ 
-        error: "Server error",
-        debugMessage: "Failed to sign CloudFront URL", 
-        exactError: err.message,
-        keyLength: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.length : 0,
-        keyPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.substring(0, 40) : "MISSING",
-        keyEndPreview: CLOUDFRONT_PRIVATE_KEY ? CLOUDFRONT_PRIVATE_KEY.slice(-40) : "MISSING"
-      });
+    if (!(await verifyEnrollment(userId, courseId))) {
+      return res.status(403).json({ error: "Not enrolled in this course" });
     }
+
+    const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
+
+    // Create a Custom Policy that allows the browser to access EVERYTHING inside the video's folder
+    const customPolicy = JSON.stringify({
+      Statement: [
+        {
+          Resource: `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/*`,
+          Condition: {
+            DateLessThan: { "AWS:EpochTime": expiresAt },
+          },
+        },
+      ],
+    });
+
+    // Generate the 3 magic cookies
+    const cookies = getSignedCookies({
+      keyPairId: CLOUDFRONT_KEY_ID,
+      privateKey: CLOUDFRONT_PRIVATE_KEY,
+      policy: customPolicy,
+    });
+
+    // Set cookies in the browser response
+    const cookieOptions = {
+      domain: ".aventratechsolution.com", // Allows the cookies to work on both main and cdn domains
+      path: "/",
+      httpOnly: false, // Must be false so CloudFront/HLS can read them
+      secure: true,
+      sameSite: "none",
+    };
+
+    res.cookie("CloudFront-Policy", cookies["CloudFront-Policy"], cookieOptions);
+    res.cookie("CloudFront-Signature", cookies["CloudFront-Signature"], cookieOptions);
+    res.cookie("CloudFront-Key-Pair-Id", cookies["CloudFront-Key-Pair-Id"], cookieOptions);
+
+    // Return the clean URL. No ugly signature strings attached!
+    const videoUrl = `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
+    
+    res.json({ videoUrl, videoId, quality, expiresInSeconds: 7200 });
+
+  } catch (err) {
+    console.error("Signed Cookies error:", err);
+    res.status(500).json({ error: "Failed to generate signed cookies" });
   }
-);
+});
 
 module.exports = router;
