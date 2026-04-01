@@ -226,7 +226,7 @@ export default function CourseDetail() {
                 <h1 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, marginBottom: 8 }}>{course.title}</h1>
                 <p style={{ color: textSecondary, fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>{course.description}</p>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {[course.level?.toUpperCase(), course.category, `₹${course.price?.toLocaleString()}`].map((b) => b && (
+                  {[course.level?.toUpperCase(),].map((b) => b && (
                     <span key={b} style={{
                       background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.85)",
                       fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 99,
