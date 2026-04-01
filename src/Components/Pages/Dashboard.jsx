@@ -34,6 +34,13 @@ export default function Dashboard() {
     const init = async () => {
       try {
         const token = await getToken();
+        // ── SAFARI WAKE-UP CALL ──
+        // This "no-cors" fetch tells Safari that you are intentionally 
+        // communicating with the CDN. It helps ensure your signed cookies 
+        // are accepted for the video player later.
+        fetch('https://cdn.aventratechsolution.com/streaming-output/FT01/FT01_720p.m3u8', { 
+          mode: 'no-cors' 
+        }).catch(() => {}); // We don't care if it fails, we just want the interaction
 
         // Sync user
         await axios.post("/api/user/sync",

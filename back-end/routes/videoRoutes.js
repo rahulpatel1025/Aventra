@@ -116,7 +116,7 @@ router.get("/set-cookies", requireAuth(), [
       path: "/",
       httpOnly: false, // Must be false so React/HLS can read them
       secure: true,
-      sameSite: "none",
+      sameSite: "Lax",
     };
 
     res.cookie("CloudFront-Policy", policy, cookieOptions);
