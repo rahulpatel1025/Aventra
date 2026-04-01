@@ -1,23 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios"); // 👈 Added Axios to talk to Lambda
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
-const { getSignedCookies } = require("@aws-sdk/cloudfront-signer");
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
 // ── CloudFront config from env ──
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; // Now cdn.aventratechsolution.com
-const CLOUDFRONT_KEY_ID = process.env.CLOUDFRONT_KEY_ID; 
-
-let CLOUDFRONT_PRIVATE_KEY = "";
-if (process.env.CLOUDFRONT_PRIVATE_KEY) {
-  CLOUDFRONT_PRIVATE_KEY = process.env.CLOUDFRONT_PRIVATE_KEY
-    .replace(/^["']|["']$/g, "") 
-    .replace(/\\+n/g, "\n")      
-    .replace(/\r/g, "")          
-    .trim();                     
-}
+// Notice we deleted the private key logic here. Hostinger doesn't need it anymore!
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 
 // ── FinTech course video catalogue ──
 const FINTECH_VIDEOS = [
@@ -89,8 +80,7 @@ router.get("/catalogue/:courseId", requireAuth(), [param("courseId").isMongoId()
   }
 });
 
-// ── GET /api/videos/set-cookies ──
-// This completely replaces the "signed-url" route!
+// ── GET /api/videos/set-cookies (Using AWS Lambda) ──
 router.get("/set-cookies", requireAuth(), [
   query("courseId").isMongoId().withMessage("Invalid courseId"),
   query("videoId").trim().notEmpty().withMessage("videoId is required"),
@@ -106,48 +96,35 @@ router.get("/set-cookies", requireAuth(), [
       return res.status(403).json({ error: "Not enrolled in this course" });
     }
 
-    const expiresAt = Math.floor(Date.now() / 1000) + 2 * 60 * 60; // 2 hours
-
-    // Create a Custom Policy that allows the browser to access EVERYTHING inside the video's folder
-    const customPolicy = JSON.stringify({
-      Statement: [
-        {
-          Resource: `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/*`,
-          Condition: {
-            DateLessThan: { "AWS:EpochTime": expiresAt },
-          },
-        },
-      ],
+    // 1. Ask AWS Lambda to generate the cookies 👈 THIS IS THE NEW MAGIC
+    const lambdaResponse = await axios.post(process.env.LAMBDA_SIGNER_URL, {
+      videoId: videoId
     });
 
-    // Generate the 3 magic cookies
-    const cookies = getSignedCookies({
-      keyPairId: CLOUDFRONT_KEY_ID,
-      privateKey: CLOUDFRONT_PRIVATE_KEY,
-      policy: customPolicy,
-    });
+    // Lambda hands us back the exact cookies we need
+    const { policy, signature, keyPairId, domain } = lambdaResponse.data;
 
-    // Set cookies in the browser response
+    // 2. Set the cookies on the user's browser
     const cookieOptions = {
-      domain: ".aventratechsolution.com", // Allows the cookies to work on both main and cdn domains
+      domain: ".aventratechsolution.com", // Works on main site and CDN
       path: "/",
-      httpOnly: false, // Must be false so CloudFront/HLS can read them
+      httpOnly: false, // Must be false so React/HLS can read them
       secure: true,
       sameSite: "none",
     };
 
-    res.cookie("CloudFront-Policy", cookies["CloudFront-Policy"], cookieOptions);
-    res.cookie("CloudFront-Signature", cookies["CloudFront-Signature"], cookieOptions);
-    res.cookie("CloudFront-Key-Pair-Id", cookies["CloudFront-Key-Pair-Id"], cookieOptions);
+    res.cookie("CloudFront-Policy", policy, cookieOptions);
+    res.cookie("CloudFront-Signature", signature, cookieOptions);
+    res.cookie("CloudFront-Key-Pair-Id", keyPairId, cookieOptions);
 
-    // Return the clean URL. No ugly signature strings attached!
-    const videoUrl = `https://${CLOUDFRONT_DOMAIN}/streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
+    // 3. Return the clean URL
+    const videoUrl = `https://${domain}/streaming-output/${videoId}/${videoId}_${quality}.m3u8`;
     
     res.json({ videoUrl, videoId, quality, expiresInSeconds: 7200 });
 
   } catch (err) {
-    console.error("Signed Cookies error:", err);
-    res.status(500).json({ error: "Failed to generate signed cookies" });
+    console.error("Lambda Communication Error:", err?.response?.data || err.message);
+    res.status(500).json({ error: "Failed to generate signed cookies via Lambda" });
   }
 });
 
