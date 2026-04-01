@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const axios = require("axios"); // 👈 Added Axios to talk to Lambda
+// 👈 Axios import completely removed!
 const { requireAuth } = require("@clerk/express");
 const { param, query, validationResult } = require("express-validator");
 const User = require("../models/User");
 const VideoProgress = require("../models/VideoProgress");
 
 // ── CloudFront config from env ──
-// Notice we deleted the private key logic here. Hostinger doesn't need it anymore!
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 
 // ── FinTech course video catalogue ──
@@ -80,7 +79,7 @@ router.get("/catalogue/:courseId", requireAuth(), [param("courseId").isMongoId()
   }
 });
 
-// ── GET /api/videos/set-cookies (Using AWS Lambda) ──
+// ── GET /api/videos/set-cookies (Using AWS Lambda & Native Fetch) ──
 router.get("/set-cookies", requireAuth(), [
   query("courseId").isMongoId().withMessage("Invalid courseId"),
   query("videoId").trim().notEmpty().withMessage("videoId is required"),
@@ -96,13 +95,20 @@ router.get("/set-cookies", requireAuth(), [
       return res.status(403).json({ error: "Not enrolled in this course" });
     }
 
-    // 1. Ask AWS Lambda to generate the cookies 👈 THIS IS THE NEW MAGIC
-    const lambdaResponse = await axios.post(process.env.LAMBDA_SIGNER_URL, {
-      videoId: videoId
+    // 1. Native Fetch to AWS Lambda (No Axios needed!)
+    const lambdaResponse = await fetch(process.env.LAMBDA_SIGNER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoId: videoId })
     });
 
+    if (!lambdaResponse.ok) {
+      throw new Error(`Lambda returned status ${lambdaResponse.status}`);
+    }
+
     // Lambda hands us back the exact cookies we need
-    const { policy, signature, keyPairId, domain } = lambdaResponse.data;
+    const data = await lambdaResponse.json();
+    const { policy, signature, keyPairId, domain } = data;
 
     // 2. Set the cookies on the user's browser
     const cookieOptions = {
@@ -123,7 +129,7 @@ router.get("/set-cookies", requireAuth(), [
     res.json({ videoUrl, videoId, quality, expiresInSeconds: 7200 });
 
   } catch (err) {
-    console.error("Lambda Communication Error:", err?.response?.data || err.message);
+    console.error("Lambda Communication Error:", err);
     res.status(500).json({ error: "Failed to generate signed cookies via Lambda" });
   }
 });
