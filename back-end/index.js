@@ -16,6 +16,7 @@ const courseRoutes = require("./routes/courseRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const referralRoutes = require("./routes/referralRoutes");
+const contactRoutes =require("./routes/contactRoutes");
 const videoRoutes = require("./routes/videoRoutes");
 const progressRoutes = require("./routes/progressRoutes");
 
@@ -244,6 +245,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/referral", referralRoutes);
+app.use("/api/contact", contactRoutes);
 app.use("/api/videos", videoRoutes); // <--- THIS IS THE MAGIC LINE ADDED
 app.use("/api/progress", progressRoutes); // <--- PROGRESS TRACKING ROUTES
 
