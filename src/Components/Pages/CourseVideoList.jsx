@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/clerk-react";
 import SecureVideoPlayer from "./SecureVideoPlayer";
 import "../../assets/css/CourseVideoList.css";
 
-export default function CourseVideoList({ courseId, courseName }) {
+export default function CourseVideoList({ courseId, courseName, onProgressChange }) {
   const { getToken } = useAuth();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ export default function CourseVideoList({ courseId, courseName }) {
 
   useEffect(() => {
     fetchCatalogue();
-  }, [courseId]);
+  }, [courseId, fetchCatalogue]);
 
   // Called by SecureVideoPlayer when a video finishes
   const handleVideoComplete = useCallback((videoId, videoIndex) => {
@@ -55,6 +55,18 @@ export default function CourseVideoList({ courseId, courseName }) {
     }, 2000);
   }, [videos.length]);
 
+  // 👇 MOVED TO THE TOP: All Hooks and calculations must be ABOVE the early returns
+  const completedCount = videos.filter((v) => v.completed).length;
+  const progressPercent = videos.length > 0 ? Math.round((completedCount / videos.length) * 100) : 0;
+
+  useEffect(() => {
+    if (onProgressChange && videos.length > 0) {
+      onProgressChange(progressPercent);
+    }
+  }, [progressPercent, videos.length, onProgressChange]);
+  // 👆 END OF HOOKS
+
+  // NOW it is safe to do early returns
   if (loading) return (
     <div className="cvl-loading">Loading course content...</div>
   );
@@ -64,8 +76,6 @@ export default function CourseVideoList({ courseId, courseName }) {
   );
 
   const activeVideo = activeIndex !== null ? videos[activeIndex] : null;
-  const completedCount = videos.filter((v) => v.completed).length;
-  const progressPercent = videos.length > 0 ? Math.round((completedCount / videos.length) * 100) : 0;
 
   return (
     <div className="cvl-wrapper">

@@ -66,6 +66,8 @@ export default function ODataCourseCard({ course }) {
             >
               View Details
             </button>
+            
+            {/* --- ENROLL BUTTON COMMENTED OUT FOR NOW ---
             <button
               className="action-btn solid-btn"
               onClick={() =>
@@ -79,7 +81,18 @@ export default function ODataCourseCard({ course }) {
               }
             >
               Enroll Now
+            </button> 
+            ---------------------------------------------- */}
+            
+            {/* --- COMING SOON BADGE REPLACEMENT --- */}
+            <button
+              className="action-btn solid-btn"
+              style={{ cursor: "not-allowed", opacity: 0.7, pointerEvents: "none" }}
+              disabled
+            >
+              Coming Soon
             </button>
+
           </div>
         </div>
 

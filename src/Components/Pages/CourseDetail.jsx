@@ -131,6 +131,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [quizResult, setQuizResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -187,7 +188,9 @@ export default function CourseDetail() {
   const quizProgress = quizResult?.score ? Math.round((quizResult.score / totalQuizQuestions) * 100) : 0;
   const quizPassed = quizResult?.passed || false;
   const attemptsUsed = quizResult?.attemptsUsed || 0;
-  const canTakeQuiz = !quizPassed && attemptsUsed < 3;
+  const allVideosWatched = videoProgress === 100;
+  const canTakeQuiz = !quizPassed && attemptsUsed < 3 && allVideosWatched;
+  
 
   const textPrimary = "#ffffff";
   const textSecondary = "rgba(255,255,255,0.55)";
@@ -243,7 +246,7 @@ export default function CourseDetail() {
             <>
               {/* Full-width video player section */}
               <div style={{ marginBottom: 28 }}>
-                <CourseVideoList courseId={courseId} courseName={course.title} />
+                <CourseVideoList courseId={courseId} courseName={course.title} onProgressChange={setVideoProgress}/>
               </div>
 
               {/* Below video: quiz + info side by side */}
@@ -289,6 +292,7 @@ export default function CourseDetail() {
                     </div>
                   )}
 
+                  {/* REPLACE YOUR CURRENT BUTTON WITH THIS: */}
                   <button
                     onClick={() => (canTakeQuiz || quizPassed) && navigate("/quiz/fintech")}
                     disabled={!canTakeQuiz && !quizPassed}
@@ -301,7 +305,13 @@ export default function CourseDetail() {
                       cursor: canTakeQuiz || quizPassed ? "pointer" : "not-allowed", minHeight: 48,
                     }}
                   >
-                    {quizPassed ? "📋 Review Quiz" : canTakeQuiz ? "🚀 Take Quiz" : "❌ No Attempts Left"}
+                    {quizPassed 
+                      ? "📋 Review Quiz" 
+                      : !allVideosWatched 
+                        ? "🔒 Watch All Videos to Unlock" // 👈 New message!
+                        : canTakeQuiz 
+                          ? "🚀 Take Quiz" 
+                          : "❌ No Attempts Left"}
                   </button>
                   <p style={{ fontSize: 12, color: textMuted, textAlign: "center", margin: "10px 0 0" }}>
                     24 questions • 75% to pass • 3 max attempts

@@ -4,6 +4,7 @@ import axios from "axios";
 
 import DashboardCTA from "./DashboardCTA";
 import FinTechCourse from "../Course/FinTechCourse";
+import ODataCourseCard from "../Course/ODataCourseCard";
 import AIMLCourseCard from "../Course/AIMLCourseCard";
 
 export default function Courses() {
@@ -300,11 +301,21 @@ export default function Courses() {
 
           {/* COURSE GRID */}
           <div className="row g-4 justify-content-center align-items-stretch">
-            {!loading && courses.map((course) => (
-              <div className="col-lg-4 col-md-6 d-flex" key={course._id}>
-                <FinTechCourse course={course} />
-              </div>
-            ))}
+            {!loading && courses.map((course) => {
+              // 👈 THIS IS THE NEW LOGIC
+              const isOData = course.title?.toLowerCase().includes("odata");
+
+              return (
+                <div className="col-lg-4 col-md-6 d-flex" key={course._id}>
+                  {isOData ? (
+                    <ODataCourseCard course={course} />
+                  ) : (
+                    <FinTechCourse course={course} />
+                  )}
+                </div>
+              );
+            })}
+            
             {!loading && (
               <div className="col-lg-4 col-md-6 d-flex">
                 <AIMLCourseCard />

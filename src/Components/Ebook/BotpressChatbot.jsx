@@ -15,7 +15,7 @@ const FAQ_DATA = [
   {
     id: "q3",
     question: "💼 Do you offer internships?",
-    answer: "Yes! Top-performing students who complete our professional courses gain access to exclusive internship opportunities with our partner companies.",
+    answer: "Yes! We offer a 100% guaranteed, stipend-based internship to all students. Simply complete your course and pass the final assessment with a minimum score of 70% to unlock your placement.",
   },
   {
     id: "q4",

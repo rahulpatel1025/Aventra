@@ -117,6 +117,10 @@ export default function Dashboard() {
   const hasPurchasedCourse = dbUser.role === "superadmin" || purchasedCourses.length > 0;
   const totalQuizQuestions = 24;
   const quizProgress = dbUser.quizScore ? Math.round((dbUser.quizScore / totalQuizQuestions) * 100) : 0;
+  const courseProgress = purchasedCourses.length > 0 ? (purchasedCourses[0].progress || 0) : 0; 
+  const allVideosWatched = courseProgress === 100 || dbUser.role === "superadmin"; 
+  const attemptsUsed = dbUser.quizAttempts || 0;
+  const canTakeQuiz = !dbUser.quizPassed && attemptsUsed < 3 && allVideosWatched;
 
   return (
     <div className="dashboard-layout">
@@ -234,9 +238,9 @@ export default function Dashboard() {
                       {course.level?.toUpperCase()} • {course.category || "Professional"}
                     </div>
                     <div className="course-progress-bar-wrap">
-                      <div className="course-progress-bar" style={{ width: "0%" }} />
+                      <div className="course-progress-bar" style={{ width: `${course.progress || 0}%` }} />
                     </div>
-                    <div className="course-progress-text">0% complete</div>
+                    <div className="course-progress-text">{course.progress || 0}% complete</div>
                   </div>
                 </div>
               ))}
@@ -264,30 +268,68 @@ export default function Dashboard() {
             </p>
             {hasPurchasedCourse && (
               <button
-                onClick={() => navigate("/quiz/fintech")}
+                onClick={() => (canTakeQuiz || dbUser.quizPassed) && navigate("/quiz/fintech")}
+                disabled={!canTakeQuiz && !dbUser.quizPassed}
                 style={{
-                  marginTop: 12, background: "#2563eb", color: "#fff",
-                  border: "none", padding: "10px 24px", borderRadius: 8,
-                  fontWeight: 600, fontSize: 14, cursor: "pointer",
+                  marginTop: 12, 
+                  background: canTakeQuiz || dbUser.quizPassed ? "#2563eb" : "rgba(100,116,139,0.4)", 
+                  color: "#fff",
+                  border: "none", 
+                  padding: "10px 24px", 
+                  borderRadius: 8,
+                  fontWeight: 600, 
+                  fontSize: 14, 
+                  cursor: canTakeQuiz || dbUser.quizPassed ? "pointer" : "not-allowed",
+                  width: "100%"
                 }}
               >
-                {dbUser.quizPassed ? "Review Quiz" : "Take Quiz →"}
+                {dbUser.quizPassed 
+                  ? "📋 Review Quiz" 
+                  : !allVideosWatched 
+                    ? "🔒 Watch All Videos to Unlock"
+                    : canTakeQuiz 
+                      ? "🚀 Take Quiz →" 
+                      : "❌ No Attempts Left"}
               </button>
             )}
           </div>
 
           <div className="glass-card animated">
-            <h3>📢 Announcements</h3>
-            <ul>
-              <li>🚀 Internship onboarding starts next week.</li>
-              <li>📘 New React course launching soon.</li>
-              <li>🎯 Resume workshop on Friday.</li>
-              {dbUser.quizPassed && (
-                <li style={{ color: "#10b981", fontWeight: 700 }}>
-                  🏆 Your FinTech Certificate is ready to download!
-                </li>
-              )}
-            </ul>
+            <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0" }}>
+              <span style={{ fontSize: "22px" }}>🚀</span> Claim Your Internship
+            </h3>
+            
+            <div style={{
+              marginTop: "16px",
+              padding: "18px",
+              background: "linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(16,185,129,0.06) 100%)",
+              border: "1px solid rgba(37,99,235,0.15)",
+              borderLeft: "4px solid #2563eb",
+              borderRadius: "10px",
+            }}>
+              <p style={{ fontWeight: "600", fontSize: "15px", marginBottom: "12px", lineHeight: "1.4" }}>
+                Ready to start working? Follow these 3 steps to begin your onboarding:
+              </p>
+              
+              <ol style={{ paddingLeft: "20px", fontSize: "14px", lineHeight: "1.7", marginBottom: "18px", opacity: 0.9 }}>
+                <li>Watch <strong>all course videos</strong> to reach 100% completion.</li>
+                <li>Pass the final quiz with a <strong>score of 70% or higher</strong>.</li>
+                <li>Email a screenshot of your passing score along with your updated CV to <a href="mailto:support@aventratechsolution.com" style={{ color: "#3b82f6", fontWeight: "700", textDecoration: "none" }}>support@aventratechsolution.com</a>.</li>
+              </ol>
+              
+              <div style={{
+                background: "rgba(16,185,129,0.12)",
+                color: "#10b981",
+                padding: "12px 14px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: "700",
+                textAlign: "center",
+                border: "1px solid rgba(16,185,129,0.2)"
+              }}>
+                ✨ We will process your application and start your internship immediately!
+              </div>
+            </div>
           </div>
         </div>
 
