@@ -9,6 +9,7 @@ import Footer from './Footer'
 import Moto from './Moto'
 import Spinner from './Spinner'
 import CoursesToHire from './CoursesToHire'
+import HowItWorksVideo from './HowItWorksVideo'
 
 export default function Home() {
     return (
@@ -19,6 +20,7 @@ export default function Home() {
             <Service/>
             <About/>
             <CoursesToHire />
+            <HowItWorksVideo />
             <Moto />
             <Team/>
             <Testimonial/>
