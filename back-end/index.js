@@ -239,6 +239,40 @@ app.get("/api/user/me", async (req, res) => {
   }
 });
 
+// ================= UPDATE USER PROFILE =================
+app.put("/api/user/update", async (req, res) => {
+  try {
+    const authData = typeof req.auth === "function" ? req.auth() : req.auth;
+    const authUserId = authData?.userId;
+
+    if (!authUserId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { email, fullName } = req.body;
+
+    if (!email || !fullName) {
+      return res.status(400).json({ error: "Email and Full Name are required" });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId: authUserId },
+      { email, fullName },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    logger.info(`User successfully updated their Apple relay profile. New email: ${email}`);
+    res.json(updatedUser);
+  } catch (error) {
+    logger.error("Update user profile error:", error);
+    res.status(500).json({ error: "Server error during profile update" });
+  }
+});
+
 // ================= API ROUTES =================
 app.use("/api/admin", requireAuth(), adminRoutes);
 app.use("/api/courses", courseRoutes);
@@ -246,8 +280,8 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/referral", referralRoutes);
 app.use("/api/contact", contactRoutes);
-app.use("/api/videos", videoRoutes); // <--- THIS IS THE MAGIC LINE ADDED
-app.use("/api/progress", progressRoutes); // <--- PROGRESS TRACKING ROUTES
+app.use("/api/videos", videoRoutes); 
+app.use("/api/progress", progressRoutes); 
 
 // ================= FEEDBACK =================
 const commentSchema = new mongoose.Schema(

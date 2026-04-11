@@ -18,6 +18,11 @@ export default function Dashboard() {
   const [purchasedCourses, setPurchasedCourses] = useState([]);
   const [isDark, setIsDark] = useState(document.body.classList.contains("dark-mode"));
 
+  // ── Profile Gate State ──
+  const [realEmail, setRealEmail] = useState("");
+  const [realName, setRealName] = useState("");
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
   // Auto-dismiss enrollment banner
   useEffect(() => {
     if (justEnrolled) {
@@ -35,12 +40,9 @@ export default function Dashboard() {
       try {
         const token = await getToken();
         // ── SAFARI WAKE-UP CALL ──
-        // This "no-cors" fetch tells Safari that you are intentionally 
-        // communicating with the CDN. It helps ensure your signed cookies 
-        // are accepted for the video player later.
         fetch('https://cdn.aventratechsolution.com/streaming-output/FT01/FT01_720p.m3u8', { 
           mode: 'no-cors' 
-        }).catch(() => {}); // We don't care if it fails, we just want the interaction
+        }).catch(() => {}); 
 
         // Sync user
         await axios.post("/api/user/sync",
@@ -51,6 +53,11 @@ export default function Dashboard() {
         // Fetch fresh user
         const userRes = await axios.get("/api/user/me", { headers: { Authorization: `Bearer ${token}` } });
         setDbUser(userRes.data);
+        
+        // Initialize name field for the gate if it exists
+        if (userRes.data?.fullName) {
+          setRealName(userRes.data.fullName);
+        }
 
         // Fetch purchased courses
         const coursesRes = await axios.get("/api/courses/my-courses", { headers: { Authorization: `Bearer ${token}` } });
@@ -73,6 +80,25 @@ export default function Dashboard() {
     e.currentTarget.classList.toggle("active");
   };
 
+  const handleUpdateProfile = async () => {
+    if (!realEmail || !realName) return alert("Please fill in all fields.");
+    setUpdatingProfile(true);
+    try {
+      const token = await getToken();
+      await axios.put("/api/user/update", 
+        { email: realEmail, fullName: realName }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Update local state to remove the gate instantly
+      setDbUser({ ...dbUser, email: realEmail, fullName: realName });
+    } catch (err) {
+      console.error("Failed to update profile", err);
+      alert("Failed to save details. Please try again.");
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
   if (!isLoaded || loading) return (
     <div style={{ padding: 60, textAlign: "center", fontSize: 16, color: "#64748b" }}>
       Loading Dashboard...
@@ -91,7 +117,60 @@ export default function Dashboard() {
     </div>
   );
 
-  // Access gate
+  // ── PROFILE COMPLETION GATE (For Apple Users) ──
+  const isAppleHiddenEmail = dbUser.email === "hidden-apple-email@apple.com" || dbUser.email?.includes("privaterelay.appleid.com");
+  const isNameMissing = !dbUser.fullName || dbUser.fullName.trim() === "";
+
+  if (isAppleHiddenEmail || isNameMissing) {
+    return (
+      <div className="dashboard-locked" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f8fafc', padding: '20px' }}>
+        <div className="locked-card" style={{ background: 'white', padding: '40px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxWidth: '450px', width: '100%' }}>
+          <div style={{ fontSize: 48, marginBottom: 12, textAlign: 'center' }}>⚠️</div>
+          <h2 style={{ textAlign: 'center', marginBottom: '16px', color: '#0f172a' }}>Action Required</h2>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '24px', textAlign: 'center', lineHeight: '1.6' }}>
+            Because you logged in with Apple, your contact details are hidden. We need your real name and email to issue your course certificates and process your internship placement.
+          </p>
+          
+          <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Full Legal Name (For Certificates)</label>
+            <input 
+              type="text" 
+              value={realName} 
+              onChange={(e) => setRealName(e.target.value)} 
+              placeholder="e.g. Rahul Patel"
+              style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Contact Email (For Internship)</label>
+            <input 
+              type="email" 
+              value={realEmail} 
+              onChange={(e) => setRealEmail(e.target.value)} 
+              placeholder="your.real.email@gmail.com"
+              style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+            />
+          </div>
+
+          <button 
+            onClick={handleUpdateProfile} 
+            disabled={updatingProfile}
+            style={{ width: '100%', background: '#2563eb', color: 'white', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: '600', cursor: updatingProfile ? 'not-allowed' : 'pointer', fontSize: '15px' }}
+          >
+            {updatingProfile ? "Saving..." : "Save & Continue"}
+          </button>
+
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 24, color: "#64748b", fontSize: 13 }}>
+            <span>Sign out / Switch account:</span>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Access gate for unpurchased users
   if (!dbUser.hasPurchased && dbUser.role !== "superadmin") {
     return (
       <div className="dashboard-locked">
@@ -152,6 +231,8 @@ export default function Dashboard() {
           <a onClick={() => navigate("/")}>🏠 Home</a>
           <a className="active">📊 Dashboard</a>
           <a onClick={() => navigate("/my-courses")}>📚 My Courses</a>
+          <a>🎓 Certificates</a>
+          <a>⚙️ Settings</a>
         </nav>
       </aside>
 
