@@ -81,10 +81,10 @@ export default function Contact() {
               <div className="contact-info-icon">
                 <i className="fa fa-phone-alt" />
               </div>
-              <div className="contact-info-text">
+              {/*<div className="contact-info-text">
                 <h5>Phone</h5>
                 <p>+91 834 766 9000</p>
-              </div>
+              </div>*/}
             </div>
 
             <div className="contact-info-item">

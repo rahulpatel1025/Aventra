@@ -30,10 +30,10 @@ export default function Footer() {
                 Mumbai, Maharashtra, India
               </p>
 
-              <p className="mb-3" style={{ color: "#475569" }}>
+              {/*<p className="mb-3" style={{ color: "#475569" }}>
                 <i className="fa fa-phone-alt me-3" style={{ color: "#0f172a" }} />
                 +91 834-766-9000
-              </p>
+              </p>*/}
 
               <p className="mb-3" style={{ color: "#475569" }}>
                 <i className="fa fa-envelope me-3" style={{ color: "#0f172a" }} />
