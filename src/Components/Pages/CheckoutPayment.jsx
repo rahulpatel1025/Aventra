@@ -188,10 +188,10 @@ export default function CheckoutPayment() {
           </div>
         </div>
 
-        {/* MINI10 benefit callout */}
-        {referralCode === "MINI10" && (
+        {/* SEJAL10 benefit callout */}
+        {(referralCode?.toUpperCase() === "SEJAL10" || referralCode?.toUpperCase() === "MINI10") && (
           <div style={{ background:"linear-gradient(135deg,#eff6ff,#dbeafe)", border:"1px solid #bfdbfe", borderRadius:"10px", padding:"16px 18px", marginBottom:"12px" }}>
-            <div style={{ fontWeight:700, fontSize:"14px", color:"#1d4ed8", marginBottom:"6px" }}>🎯 MINI10 — Internship Support Activated</div>
+            <div style={{ fontWeight:700, fontSize:"14px", color:"#1d4ed8", marginBottom:"6px" }}>🎯 {referralCode?.toUpperCase() || "SEJAL10"} — Internship Support Activated</div>
             <div style={{ fontSize:"13px", color:"#1e3a8a", lineHeight:1.5 }}>
               You'll receive a dedicated benefits email after payment with everything that's unlocked for you.
             </div>

@@ -19,10 +19,10 @@ const REFERRAL_CODES = {
     active: true,
     sendBenefitsEmail: false,
   },
-  "MINI10": {
+  "SEJAL10": {
     type: "none",        // no discount — benefits email only
     discount: 0,
-    label: "MINI10 — Internship Support Activated",
+    label: "SEJAL10 — Internship Support Activated",
     active: true,
     sendBenefitsEmail: true,
     benefits: [
@@ -68,7 +68,7 @@ router.post(
     } else if (entry.type === "leave_one") {
       discount = coursePrice - 1;
     } else if (entry.type === "none") {
-      discount = 0; // MINI10 — no discount
+      discount = 0; // SEJAL10 — no discount
     }
 
     const finalPrice = Math.max(1, coursePrice - discount);

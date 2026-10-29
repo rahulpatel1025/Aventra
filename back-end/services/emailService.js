@@ -98,10 +98,10 @@ async function sendInvoiceEmail({
     ? `<div class="invoice-row"><span>Referral Code</span><span style="font-weight:600;color:#0f172a;">${referralCode}</span></div>`
     : "";
 
-  // MINI10 callout box
-  const mini10Box = referralCode && referralCode.toUpperCase() === "MINI10"
+  // SEJAL10 callout box
+  const sejal10Box = referralCode && (referralCode.toUpperCase() === "SEJAL10" || referralCode.toUpperCase() === "MINI10")
     ? `<div class="highlight-box">
-        <h3>🎯 Your MINI10 Benefits Are Activated</h3>
+        <h3>🎯 Your ${referralCode.toUpperCase()} Benefits Are Activated</h3>
         <ul>
           <li>100% Internship Support — guaranteed placement after completion</li>
           <li>Dedicated placement coordinator assigned to your profile</li>
@@ -128,7 +128,7 @@ async function sendInvoiceEmail({
       <div class="invoice-row total"><span>Amount Paid</span><span>${formattedAmount}</span></div>
     </div>
 
-    ${mini10Box}
+    ${sejal10Box}
 
     <div class="features">
       <h3>What's included in your program:</h3>
@@ -162,25 +162,26 @@ async function sendInvoiceEmail({
   log.info(`Invoice email sent to ${toEmail}`);
 }
 
-// ================= MINI10 BENEFITS EMAIL =================
-// Sent as a separate dedicated email when MINI10 referral code is used
-async function sendBenefitsEmail({ toEmail, studentName, courseName }) {
+// ================= SEJAL10 BENEFITS EMAIL =================
+// Sent as a separate dedicated email when SEJAL10 referral code is used
+async function sendBenefitsEmail({ toEmail, studentName, courseName, referralCode = "SEJAL10" }) {
+  const codeLabel = (referralCode || "SEJAL10").toUpperCase();
   const content = `
-    <div class="welcome">Your MINI10 Benefits Are Now Active 🎯</div>
+    <div class="welcome">Your ${codeLabel} Benefits Are Now Active 🎯</div>
     <p class="subtitle">
-      You used the <strong>MINI10</strong> referral code at checkout for <strong>${courseName}</strong>.
+      You used the <strong>${codeLabel}</strong> referral code at checkout for <strong>${courseName}</strong>.
       Here's everything that's now unlocked for you:
     </p>
 
     <span class="badge-blue">🚀 Internship Support Activated</span>
 
     <div class="highlight-box">
-      <h3>Your Exclusive MINI10 Benefits</h3>
+      <h3>Your Exclusive ${codeLabel} Benefits</h3>
       <ul>
         <li><strong>100% Internship Support</strong> — guaranteed placement after course completion</li>
         <li>Dedicated placement coordinator assigned to your profile</li>
         <li>Resume review and LinkedIn profile optimisation by industry experts</li>
-        <li>Money-back guarantee if internship is not secured within 90 days of completion</li>
+        <li>Money-back guarantee if internship not secured within 90 days of completion</li>
       </ul>
     </div>
 
@@ -198,19 +199,19 @@ async function sendBenefitsEmail({ toEmail, studentName, courseName }) {
     </div>
 
     <p style="font-size:13px;color:#94a3b8;text-align:center;">
-      Questions about your MINI10 benefits? Reply to this email and we'll get back to you within 24 hours.
+      Questions about your ${codeLabel} benefits? Reply to this email and we'll get back to you within 24 hours.
     </p>
   `;
 
   await transporter.sendMail({
     from: `"Aventra Tech Solutions" <${process.env.GMAIL_USER}>`,
     to: toEmail,
-    subject: `🎯 Your MINI10 Internship Benefits Are Active — ${courseName}`,
+    subject: `🎯 Your ${codeLabel} Internship Benefits Are Active — ${courseName}`,
     html: emailShell(content),
   });
 
   const log = global.logger || console;
-  log.info(`MINI10 benefits email sent to ${toEmail}`);
+  log.info(`${codeLabel} benefits email sent to ${toEmail}`);
 }
 
 module.exports = { sendInvoiceEmail, sendBenefitsEmail };

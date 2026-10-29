@@ -12,7 +12,7 @@ async function completePurchase({
   paymentId,
   paymentMethod = "one_time",
   emiDetails = null,
-  referralCode = null,   // e.g. "MINI10", "AVENTRA1000", "AVENTRADEV1"
+  referralCode = null,   // e.g. "SEJAL10", "AVENTRA1000", "AVENTRADEV1"
 }) {
   const log = global.logger || console;
 
@@ -92,20 +92,22 @@ async function completePurchase({
     log.error("Invoice email failed (non-critical):", emailErr.message);
   }
 
-  // 8️⃣ Send MINI10 benefits email if that referral code was used
+  // 8️⃣ Send SEJAL10 benefits email if that referral code was used
   // Runs after invoice email — completely separate, non-blocking
   try {
+    const code = referralCode ? referralCode.toUpperCase() : null;
     if (
-      referralCode &&
-      referralCode.toUpperCase() === "MINI10" &&
+      code &&
+      (code === "SEJAL10" || code === "MINI10") &&
       user.email
     ) {
       await sendBenefitsEmail({
         toEmail: user.email,
         studentName: user.fullName || "Student",
         courseName: course.title || course.name || "Your Course",
+        referralCode: code,
       });
-      log.info(`MINI10 benefits email sent to ${user.email}`);
+      log.info(`SEJAL10 benefits email sent to ${user.email}`);
     }
   } catch (benefitsErr) {
     log.error("Benefits email failed (non-critical):", benefitsErr.message);
