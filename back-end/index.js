@@ -73,10 +73,100 @@ if (IS_PRODUCTION) {
 }
 
 // ================= HELMET (Security Headers) =================
+// Note: When contentSecurityPolicy is undefined, Helmet applies its default CSP
+// which sets "script-src 'self'", blocking external CDNs (jQuery, Bootstrap,
+// FontAwesome), Clerk Auth scripts, and Razorpay payment SDK.
+// Set contentSecurityPolicy to false by default to prevent blocking essential
+// platform scripts, or configure explicit whitelist directives if ENABLE_STRICT_CSP=true.
+const enableStrictCsp = process.env.ENABLE_STRICT_CSP === "true";
+
 app.use(
   helmet({
-    contentSecurityPolicy: IS_PRODUCTION ? undefined : false,
+    contentSecurityPolicy: enableStrictCsp
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              "'unsafe-eval'",
+              "https://code.jquery.com",
+              "https://cdn.jsdelivr.net",
+              "https://cdnjs.cloudflare.com",
+              "https://checkout.razorpay.com",
+              "https://*.razorpay.com",
+              "https://*.clerk.accounts.dev",
+              "https://*.clerk.com",
+              "https://clerk.aventratechsolution.com",
+              "https://challenges.cloudflare.com",
+            ],
+            scriptSrcElem: [
+              "'self'",
+              "'unsafe-inline'",
+              "https://code.jquery.com",
+              "https://cdn.jsdelivr.net",
+              "https://cdnjs.cloudflare.com",
+              "https://checkout.razorpay.com",
+              "https://*.razorpay.com",
+              "https://*.clerk.accounts.dev",
+              "https://*.clerk.com",
+              "https://clerk.aventratechsolution.com",
+              "https://challenges.cloudflare.com",
+            ],
+            styleSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              "https://fonts.googleapis.com",
+              "https://cdnjs.cloudflare.com",
+              "https://cdn.jsdelivr.net",
+            ],
+            fontSrc: [
+              "'self'",
+              "https://fonts.gstatic.com",
+              "https://cdnjs.cloudflare.com",
+              "https://cdn.jsdelivr.net",
+              "data:",
+            ],
+            imgSrc: ["'self'", "data:", "blob:", "https:"],
+            connectSrc: [
+              "'self'",
+              "https://aventratechsolution.com",
+              "https://www.aventratechsolution.com",
+              "https://*.clerk.accounts.dev",
+              "https://*.clerk.com",
+              "https://clerk.aventratechsolution.com",
+              "wss://*.clerk.accounts.dev",
+              "https://api.razorpay.com",
+              "https://lumberjack.razorpay.com",
+              "https://*.razorpay.com",
+              "https://cdn.aventratechsolution.com",
+              "https://*.cloudfront.net",
+              "https://*.amazonaws.com",
+              "https://bawypu6phnhanfilslqite753y0gwwxv.lambda-url.us-east-1.on.aws",
+            ],
+            frameSrc: [
+              "'self'",
+              "https://api.razorpay.com",
+              "https://checkout.razorpay.com",
+              "https://*.razorpay.com",
+              "https://*.clerk.accounts.dev",
+              "https://*.clerk.com",
+              "https://challenges.cloudflare.com",
+            ],
+            mediaSrc: [
+              "'self'",
+              "blob:",
+              "https://cdn.aventratechsolution.com",
+              "https://*.cloudfront.net",
+              "https://*.amazonaws.com",
+              "https:",
+            ],
+            workerSrc: ["'self'", "blob:"],
+          },
+        }
+      : false,
     crossOriginEmbedderPolicy: false, // needed for Razorpay iframe
+    crossOriginOpenerPolicy: false,   // allows Clerk / Google login & Razorpay popups
   })
 );
 
